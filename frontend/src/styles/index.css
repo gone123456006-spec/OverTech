@@ -1,0 +1,20 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Order placed - It's Done animation */
+@keyframes orderDonePop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.order-done-check svg {
+  animation: orderDonePop 0.6s ease-out forwards;
+}
+
+/* New order highlight in admin - pulse once then fade */
+@keyframes newOrderHighlight {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgb(220 252 231 / 0.6); }
+}
