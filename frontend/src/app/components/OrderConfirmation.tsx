@@ -44,8 +44,9 @@ export function OrderConfirmation() {
       <div className="max-w-4xl mx-auto px-4 py-4 md:py-8">
         {/* Success Animation - It's Done! */}
         <div
-          className={`text-center mb-6 md:mb-8 transition-all duration-700 ease-out ${showDone ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-            }`}
+          className={`text-center mb-6 md:mb-8 transition-all duration-700 ease-out ${
+            showDone ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+          }`}
         >
           <div className="inline-block relative">
             <div className="relative order-done-check">
@@ -53,8 +54,9 @@ export function OrderConfirmation() {
             </div>
           </div>
           <div
-            className={`mt-4 mb-2 transition-all duration-500 delay-300 ${showDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
+            className={`mt-4 mb-2 transition-all duration-500 delay-300 ${
+              showDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-800 text-sm font-semibold mb-3">
               It&apos;s Done!
@@ -62,8 +64,9 @@ export function OrderConfirmation() {
             <h1 className="text-2xl md:text-3xl lg:text-4xl mt-2 mb-2">Order Placed Successfully</h1>
           </div>
           <p
-            className={`text-base md:text-lg lg:text-xl text-gray-600 px-4 transition-all duration-500 delay-500 ${showDone ? 'opacity-100' : 'opacity-0'
-              }`}
+            className={`text-base md:text-lg lg:text-xl text-gray-600 px-4 transition-all duration-500 delay-500 ${
+              showDone ? 'opacity-100' : 'opacity-0'
+            }`}
           >
             Thank you for your order. We&apos;ll send you a confirmation message shortly.
           </p>
@@ -207,7 +210,7 @@ export function OrderConfirmation() {
           </Link>
           <Link
             to="/"
-            className="flex-1 inline-flex items-center justify-center px-6 py-2.5 border-2 border-blue-600 text-blue-700 bg-white rounded-full hover:bg-blue-50 transition-colors text-sm font-medium gap-2"
+            className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-blue-700 text-blue-700 rounded-lg md:rounded-xl hover:bg-blue-50 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4 md:w-5 md:h-5" />
             Continue Shopping

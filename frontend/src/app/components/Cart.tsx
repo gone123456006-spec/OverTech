@@ -59,7 +59,7 @@ export function Cart() {
           <p className="text-xl text-gray-600 mb-8">Add some products to get started!</p>
           <Link
             to="/"
-            className="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium mt-2"
+            className="inline-block px-8 py-4 bg-blue-700 text-white rounded-xl hover:bg-blue-600 transition-colors text-lg"
           >
             Continue Shopping
           </Link>
