@@ -1,3 +1,5 @@
+import { getProductOverrides } from '../utils/storage';
+
 export interface Product {
   id: string;
   name: string;
@@ -278,7 +280,19 @@ export const products: Product[] = [
 ];
 
 export const getProductById = (id: string): Product | undefined => {
-  return products.find(p => p.id === id);
+  const base = products.find(p => p.id === id);
+  if (!base) return undefined;
+  const overrides = getProductOverrides();
+  const ov = overrides.find(o => o.id === id);
+  return ov ? { ...base, ...ov } : base;
+};
+
+export const getAllProducts = (): Product[] => {
+  const overrides = getProductOverrides();
+  return products.map(p => {
+    const ov = overrides.find(o => o.id === p.id);
+    return ov ? { ...p, ...ov } : p;
+  });
 };
 
 export const getProductsByCategory = (category: string): Product[] => {
@@ -287,7 +301,7 @@ export const getProductsByCategory = (category: string): Product[] => {
 
 export const searchProducts = (query: string): Product[] => {
   const lowerQuery = query.toLowerCase();
-  return products.filter(p => 
+  return products.filter(p =>
     p.name.toLowerCase().includes(lowerQuery) ||
     p.description.toLowerCase().includes(lowerQuery) ||
     p.category.toLowerCase().includes(lowerQuery)

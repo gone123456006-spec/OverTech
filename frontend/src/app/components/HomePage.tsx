@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, ChevronLeft } from 'lucide-react';
+import { getBanners } from '../utils/storage';
 
 const categories = [
   {
@@ -26,6 +27,7 @@ const categories = [
 export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const banners = getBanners();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,13 +63,13 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Banner A - Big Savings on Grains and Pulses */}
+      {/* Banner A - Hero Banner */}
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-6">
         <div className="relative group rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
           <Link to="/category/food" className="block active:opacity-90 transition-opacity">
             <img
-              src="/assets/images/banner-grains-pulses.png"
-              alt="Big Savings on Grains and Pulses"
+              src={banners.home || '/assets/images/banner-grains-pulses.png'}
+              alt="Banner"
               className="w-full h-auto object-cover max-h-[160px] sm:max-h-[240px] md:max-h-[300px] object-center"
             />
           </Link>

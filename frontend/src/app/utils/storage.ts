@@ -43,6 +43,54 @@ const CART_KEY = 'ecommerce_cart';
 const ADDRESSES_KEY = 'ecommerce_addresses';
 const ORDERS_KEY = 'ecommerce_orders';
 const PROFILE_KEY = 'ecommerce_profile';
+const BANNERS_KEY = 'admin_banners';
+const PRODUCT_OVERRIDES_KEY = 'admin_product_overrides';
+
+// Banner types
+export interface AdminBanners {
+  home?: string;
+  cart?: string;
+  categoryClothes?: string;
+  categoryJewellery?: string;
+  categoryFood?: string;
+}
+
+export interface ProductOverride {
+  id: string;
+  name?: string;
+  price?: number;
+  stock?: number;
+  image?: string;
+  description?: string;
+  banner?: string;
+}
+
+// Banner Operations
+export const getBanners = (): AdminBanners => {
+  const b = localStorage.getItem(BANNERS_KEY);
+  return b ? JSON.parse(b) : {};
+};
+
+export const saveBanners = (banners: AdminBanners): void => {
+  localStorage.setItem(BANNERS_KEY, JSON.stringify(banners));
+};
+
+// Product Override Operations
+export const getProductOverrides = (): ProductOverride[] => {
+  const o = localStorage.getItem(PRODUCT_OVERRIDES_KEY);
+  return o ? JSON.parse(o) : [];
+};
+
+export const saveProductOverride = (override: ProductOverride): void => {
+  const overrides = getProductOverrides();
+  const idx = overrides.findIndex(o => o.id === override.id);
+  if (idx >= 0) {
+    overrides[idx] = { ...overrides[idx], ...override };
+  } else {
+    overrides.push(override);
+  }
+  localStorage.setItem(PRODUCT_OVERRIDES_KEY, JSON.stringify(overrides));
+};
 
 // Cart Operations
 export const getCart = (): CartItem[] => {
@@ -57,20 +105,20 @@ export const saveCart = (cart: CartItem[]): void => {
 export const addToCart = (productId: string, quantity: number = 1): void => {
   const cart = getCart();
   const existingItem = cart.find(item => item.productId === productId);
-  
+
   if (existingItem) {
     existingItem.quantity += quantity;
   } else {
     cart.push({ productId, quantity });
   }
-  
+
   saveCart(cart);
 };
 
 export const updateCartItemQuantity = (productId: string, quantity: number): void => {
   const cart = getCart();
   const item = cart.find(item => item.productId === productId);
-  
+
   if (item) {
     item.quantity = quantity;
     if (item.quantity <= 0) {

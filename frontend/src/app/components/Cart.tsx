@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
-import { getCart, updateCartItemQuantity, removeFromCart } from '../utils/storage';
+import { getCart, updateCartItemQuantity, removeFromCart, getBanners } from '../utils/storage';
 import { getProductById } from '../data/products';
 import type { CartItem } from '../utils/storage';
 import { toast } from 'sonner';
@@ -70,6 +70,14 @@ export function Cart() {
 
   return (
     <div className="min-h-screen bg-yellow-50/40">
+      {/* Admin-set cart banner */}
+      {getBanners().cart && (
+        <div className="w-full max-w-7xl mx-auto px-4 pt-4">
+          <div className="rounded-xl overflow-hidden shadow-md">
+            <img src={getBanners().cart} alt="Cart Banner" className="w-full max-h-40 object-cover" />
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         <h1 className="text-2xl md:text-4xl mb-4 md:mb-8">Shopping Cart</h1>
 
