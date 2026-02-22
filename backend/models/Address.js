@@ -12,17 +12,7 @@ const addressSchema = new mongoose.Schema({
         enum: ['home', 'work', 'other'],
         default: 'home'
     },
-    location: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            default: 'Point'
-        },
-        coordinates: {
-            type: [Number], // [longitude, latitude]
-            required: true
-        }
-    },
+
     address: {
         type: String,
         required: true,
@@ -54,8 +44,7 @@ const addressSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Create geospatial index for location-based queries
-addressSchema.index({ location: '2dsphere' });
+
 
 // Ensure only one default address per user
 addressSchema.pre('save', async function (next) {
