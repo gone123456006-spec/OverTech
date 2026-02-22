@@ -53,7 +53,7 @@ export function CustomerOrders() {
 
         <div className="space-y-4 md:space-y-6">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-full md:rounded-full shadow-md overflow-hidden">
+            <div key={order.id} className="bg-white rounded-lg md:rounded-xl shadow-md overflow-hidden">
               <div className="bg-gray-50 px-4 md:px-6 py-4 border-b">
                 <div className="grid grid-cols-2 md:flex md:flex-wrap items-start md:items-center md:justify-between gap-3 md:gap-4">
                   <div>
@@ -92,7 +92,7 @@ export function CustomerOrders() {
                     return (
                       <div key={item.productId} className="flex gap-3 md:gap-4">
                         <Link to={`/product/${product.id}`}>
-                          <img src={product.image} alt={product.name} className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-full" />
+                          <img src={product.image} alt={product.name} className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg" />
                         </Link>
                         <div className="flex-1 min-w-0">
                           <Link to={`/product/${product.id}`}>
@@ -121,7 +121,7 @@ export function CustomerOrders() {
 
                 <Link
                   to={`/order-confirmation/${order.id}`}
-                  className="mt-6 flex items-center justify-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                  className="mt-6 flex items-center justify-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                 >
                   View Order Details
                   <ChevronRight className="w-5 h-5" />

@@ -221,7 +221,7 @@ export function Orders() {
       .join(', ');
 
     return (
-      <div key={order.id} className="border rounded-full p-3 md:p-4 bg-white">
+      <div key={order.id} className="border rounded-lg p-3 md:p-4 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4 text-sm">
           <div>
             <p className="text-xs text-gray-500">Order ID</p>
@@ -272,7 +272,7 @@ export function Orders() {
           <h1 className="text-2xl md:text-4xl">Order Dashboard</h1>
           <button
             onClick={exportCsv}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-full hover:bg-blue-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -280,17 +280,17 @@ export function Orders() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Total Orders</p><p className="text-xl">{summary.totalOrders}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Pending</p><p className="text-xl text-amber-700">{summary.pendingOrders}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Accepted</p><p className="text-xl text-blue-700">{summary.acceptedOrders}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Out for Delivery</p><p className="text-xl text-indigo-700">{summary.outForDelivery}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Delivered</p><p className="text-xl text-blue-800">{summary.deliveredOrders}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Cancelled</p><p className="text-xl text-red-700">{summary.cancelledOrders}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Revenue</p><p className="text-xl text-blue-800">₹{summary.totalRevenue}</p></div>
-          <div className="bg-white rounded-full p-3 shadow"><p className="text-xs text-gray-500">Today's Orders</p><p className="text-xl">{summary.todaysOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Total Orders</p><p className="text-xl">{summary.totalOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Pending</p><p className="text-xl text-amber-700">{summary.pendingOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Accepted</p><p className="text-xl text-blue-700">{summary.acceptedOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Out for Delivery</p><p className="text-xl text-indigo-700">{summary.outForDelivery}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Delivered</p><p className="text-xl text-blue-800">{summary.deliveredOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Cancelled</p><p className="text-xl text-red-700">{summary.cancelledOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Revenue</p><p className="text-xl text-blue-800">₹{summary.totalRevenue}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Today's Orders</p><p className="text-xl">{summary.todaysOrders}</p></div>
         </div>
 
-        <div className="bg-white rounded-full shadow-md p-4 md:p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg md:text-2xl mb-4 inline-flex items-center gap-2"><Search className="w-5 h-5" /> Filters & Search</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <input
@@ -298,14 +298,14 @@ export function Orders() {
               placeholder="Search Order ID / Customer Name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-3 py-2 border rounded-full"
+              className="px-3 py-2 border rounded-lg"
             />
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-2 border rounded-full" />
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-2 border rounded-full" />
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-2 border rounded-lg" />
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-2 border rounded-lg" />
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value as 'all' | 'pending' | 'paid' | 'refunded')}
-              className="px-3 py-2 border rounded-full"
+              className="px-3 py-2 border rounded-lg"
             >
               <option value="all">All Payment Status</option>
               <option value="pending">Pending</option>
@@ -315,7 +315,7 @@ export function Orders() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | Order['status'])}
-              className="px-3 py-2 border rounded-full"
+              className="px-3 py-2 border rounded-lg"
             >
               <option value="all">All Order Status</option>
               <option value="pending">Pending</option>
@@ -327,7 +327,7 @@ export function Orders() {
           </div>
         </div>
 
-        <div className="bg-white rounded-full shadow-md p-4 md:p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md p-4 md:p-6 mb-6">
           <h2 className="text-lg md:text-2xl mb-4 inline-flex items-center gap-2"><BarChart3 className="w-5 h-5" /> Monthly Orders & Revenue</h2>
           <div className="grid grid-cols-6 gap-3 items-end h-52">
             {monthlyData.map((m) => (
@@ -348,30 +348,30 @@ export function Orders() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-full p-4 shadow">
+          <div className="bg-white rounded-xl p-4 shadow">
             <h3 className="font-semibold mb-1">Delivery Performance</h3>
             <p className="text-sm text-gray-600">Average delivery time</p>
             <p className="text-xl text-indigo-700">{avgDeliveryMinutes !== null ? `${avgDeliveryMinutes} mins` : 'No delivered orders yet'}</p>
           </div>
-          <div className="bg-white rounded-full p-4 shadow">
+          <div className="bg-white rounded-xl p-4 shadow">
             <h3 className="font-semibold mb-1 inline-flex items-center gap-1"><Bell className="w-4 h-4" /> Real-time Notifications</h3>
             <p className="text-sm text-gray-600">New order alerts are enabled via local event listener.</p>
           </div>
-          <div className="bg-white rounded-full p-4 shadow">
+          <div className="bg-white rounded-xl p-4 shadow">
             <h3 className="font-semibold mb-1">Customer Alerts</h3>
             <p className="text-sm text-gray-600">Email/SMS notifications are simulated via in-app toasts.</p>
           </div>
         </div>
 
         <div className="space-y-6">
-          <section className="bg-white rounded-full shadow-md p-4 md:p-6">
+          <section className="bg-white rounded-xl shadow-md p-4 md:p-6">
             <h2 className="text-lg md:text-2xl mb-3">🟡 Pending Orders ({pendingOrders.length})</h2>
             {pendingOrders.length === 0 && <p className="text-gray-500">No pending orders.</p>}
             <div className="space-y-3">
               {pendingOrders.map((order) => (
                 <div
                   key={order.id}
-                  className={`rounded-full transition-all duration-500 ${
+                  className={`rounded-lg transition-all duration-500 ${
                     newOrderId === order.id ? 'ring-2 ring-blue-500 bg-blue-50/50 animate-pulse' : ''
                   }`}
                   style={newOrderId === order.id ? { animationDuration: '1.5s' } : undefined}
@@ -391,7 +391,7 @@ export function Orders() {
             </div>
           </section>
 
-          <section className="bg-white rounded-full shadow-md p-4 md:p-6">
+          <section className="bg-white rounded-xl shadow-md p-4 md:p-6">
             <h2 className="text-lg md:text-2xl mb-3">🟢 Accepted Orders ({acceptedOrders.length})</h2>
             {acceptedOrders.length === 0 && <p className="text-gray-500">No accepted orders.</p>}
             <div className="space-y-3">
@@ -407,7 +407,7 @@ export function Orders() {
             </div>
           </section>
 
-          <section className="bg-white rounded-full shadow-md p-4 md:p-6">
+          <section className="bg-white rounded-xl shadow-md p-4 md:p-6">
             <h2 className="text-lg md:text-2xl mb-3">🔵 Out for Delivery ({outForDeliveryOrders.length})</h2>
             {outForDeliveryOrders.length === 0 && <p className="text-gray-500">No orders out for delivery.</p>}
             <div className="space-y-3">
@@ -425,7 +425,7 @@ export function Orders() {
             </div>
           </section>
 
-          <section className="bg-white rounded-full shadow-md p-4 md:p-6">
+          <section className="bg-white rounded-xl shadow-md p-4 md:p-6">
             <h2 className="text-lg md:text-2xl mb-3">🟣 Delivered Orders ({deliveredOrders.length})</h2>
             {deliveredOrders.length === 0 && <p className="text-gray-500">No delivered orders.</p>}
             <div className="space-y-3">
@@ -448,7 +448,7 @@ export function Orders() {
             </div>
           </section>
 
-          <section className="bg-white rounded-full shadow-md p-4 md:p-6">
+          <section className="bg-white rounded-xl shadow-md p-4 md:p-6">
             <h2 className="text-lg md:text-2xl mb-3">🔴 Cancelled Orders ({cancelledOrders.length})</h2>
             {cancelledOrders.length === 0 && <p className="text-gray-500">No cancelled orders.</p>}
             <div className="space-y-3">
@@ -468,7 +468,7 @@ export function Orders() {
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-600">No orders yet. Place first order from checkout.</p>
-            <Link to="/" className="inline-block mt-4 px-4 py-2 bg-blue-700 text-white rounded-full">Start Shopping</Link>
+            <Link to="/" className="inline-block mt-4 px-4 py-2 bg-blue-700 text-white rounded-lg">Start Shopping</Link>
           </div>
         )}
       </div>

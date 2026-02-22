@@ -69,13 +69,13 @@ export function Account() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Profile Section */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6">
               <div className="flex items-center justify-between mb-4 md:mb-6">
                 <h2 className="text-xl md:text-2xl">Profile Information</h2>
                 {!isEditing && hasProfile() && (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base text-blue-700 border border-blue-700 rounded-full hover:bg-blue-50 transition-colors"
+                    className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base text-blue-700 border border-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     Edit
                   </button>
@@ -92,7 +92,7 @@ export function Account() {
                         type="text"
                         value={profile.name}
                         onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your name"
                       />
                     </div>
@@ -106,7 +106,7 @@ export function Account() {
                         type="email"
                         value={profile.email}
                         onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your email"
                       />
                     </div>
@@ -120,7 +120,7 @@ export function Account() {
                         type="tel"
                         value={profile.phone}
                         onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your phone number"
                       />
                     </div>
@@ -129,7 +129,7 @@ export function Account() {
                   <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                     <button
                       onClick={handleSaveProfile}
-                      className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-full hover:bg-blue-600 transition-colors"
+                      className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
                       Save Profile
                     </button>
@@ -139,7 +139,7 @@ export function Account() {
                           loadProfile();
                           setIsEditing(false);
                         }}
-                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors"
+                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         Cancel
                       </button>
@@ -148,7 +148,7 @@ export function Account() {
                 </div>
               ) : (
                 <div className="space-y-3 md:space-y-4">
-                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-full">
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
                     <User className="w-5 h-5 md:w-6 md:h-6 text-gray-400 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm text-gray-600">Name</p>
@@ -156,7 +156,7 @@ export function Account() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-full">
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
                     <Mail className="w-5 h-5 md:w-6 md:h-6 text-gray-400 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm text-gray-600">Email</p>
@@ -164,7 +164,7 @@ export function Account() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-full">
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 rounded-lg">
                     <Phone className="w-5 h-5 md:w-6 md:h-6 text-gray-400 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm text-gray-600">Phone</p>
@@ -176,7 +176,7 @@ export function Account() {
             </div>
 
             {/* Saved Addresses */}
-            <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6">
               <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Saved Addresses</h2>
 
               {addresses.length === 0 ? (
@@ -190,7 +190,7 @@ export function Account() {
               ) : (
                 <div className="space-y-3 md:space-y-4">
                   {addresses.map((address) => (
-                    <div key={address.id} className="p-3 md:p-4 border border-gray-200 rounded-full">
+                    <div key={address.id} className="p-3 md:p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-base md:text-lg mb-1 truncate">{address.name}</p>
@@ -216,12 +216,12 @@ export function Account() {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6 space-y-3 md:space-y-4">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6 space-y-3 md:space-y-4">
               <h2 className="text-xl md:text-2xl mb-3 md:mb-4">Account Actions</h2>
 
               <button
                 onClick={() => navigate('/orders')}
-                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-full hover:bg-blue-50 transition-colors text-left flex items-center gap-2 md:gap-3"
+                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-left flex items-center gap-2 md:gap-3"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -231,7 +231,7 @@ export function Account() {
 
               <button
                 onClick={handleLogout}
-                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors text-left flex items-center gap-2 md:gap-3"
+                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-left flex items-center gap-2 md:gap-3"
               >
                 <LogOut className="w-4 h-4 md:w-5 md:h-5" />
                 Logout

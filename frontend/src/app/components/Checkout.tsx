@@ -164,7 +164,7 @@ export function Checkout() {
           <div className="lg:col-span-2">
             {/* Address Step */}
             {currentStep === 'address' && (
-              <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6">
+              <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6">
                 <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Select Delivery Address</h2>
 
                 {addresses.length > 0 && (
@@ -173,7 +173,7 @@ export function Checkout() {
                       <div
                         key={address.id}
                         onClick={() => setSelectedAddress(address)}
-                        className={`p-3 md:p-4 border-2 rounded-full cursor-pointer transition-colors ${
+                        className={`p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                           selectedAddress?.id === address.id
                             ? 'border-blue-700 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
@@ -200,12 +200,12 @@ export function Checkout() {
                 {!showAddressForm ? (
                   <button
                     onClick={() => setShowAddressForm(true)}
-                    className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-full hover:bg-blue-50 transition-colors"
+                    className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     + Add New Address
                   </button>
                 ) : (
-                  <div className="border-2 border-gray-200 rounded-full p-4 md:p-6">
+                  <div className="border-2 border-gray-200 rounded-lg p-4 md:p-6">
                     <h3 className="text-lg md:text-xl mb-3 md:mb-4">Add New Address</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                       <input
@@ -213,54 +213,54 @@ export function Checkout() {
                         placeholder="Full Name"
                         value={newAddress.name}
                         onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="tel"
                         placeholder="Mobile Number"
                         value={newAddress.mobile}
                         onChange={(e) => setNewAddress({ ...newAddress, mobile: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
                         placeholder="House / Street"
                         value={newAddress.house}
                         onChange={(e) => setNewAddress({ ...newAddress, house: e.target.value })}
-                        className="md:col-span-2 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="md:col-span-2 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
                         placeholder="City"
                         value={newAddress.city}
                         onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
                         placeholder="State"
                         value={newAddress.state}
                         onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <input
                         type="text"
                         placeholder="Pincode"
                         value={newAddress.pincode}
                         onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-3 md:mt-4">
                       <button
                         onClick={handleAddAddress}
-                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-full hover:bg-blue-600 transition-colors"
+                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
                       >
                         Save Address
                       </button>
                       <button
                         onClick={() => setShowAddressForm(false)}
-                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors"
+                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         Cancel
                       </button>
@@ -271,7 +271,7 @@ export function Checkout() {
                 <button
                   onClick={() => setCurrentStep('review')}
                   disabled={!canProceedToReview}
-                  className="w-full mt-4 md:mt-6 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="w-full mt-4 md:mt-6 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   Continue to Review
                 </button>
@@ -280,12 +280,12 @@ export function Checkout() {
 
             {/* Review Step */}
             {currentStep === 'review' && (
-              <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6">
+              <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6">
                 <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Review Your Order</h2>
 
                 {/* Delivery Address */}
                 {selectedAddress && (
-                  <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-full">
+                  <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg">
                     <h3 className="text-base md:text-lg mb-2">Delivery Address</h3>
                     <p className="text-sm md:text-base mb-1">{selectedAddress.name}</p>
                     <p className="text-xs md:text-base text-gray-600">{selectedAddress.mobile}</p>
@@ -310,7 +310,7 @@ export function Checkout() {
                     if (!product) return null;
 
                     return (
-                      <div key={item.productId} className="flex gap-4 p-4 border border-gray-200 rounded-full">
+                      <div key={item.productId} className="flex gap-4 p-4 border border-gray-200 rounded-lg">
                         <img
                           src={product.image}
                           alt={product.name}
@@ -330,7 +330,7 @@ export function Checkout() {
                 </div>
 
                 {/* Estimated Delivery */}
-                <div className="p-4 bg-blue-50 rounded-full mb-6">
+                <div className="p-4 bg-blue-50 rounded-lg mb-6">
                   <p className="text-blue-800">
                     Average delivery: <strong>15 - 30 minutes</strong>
                   </p>
@@ -339,7 +339,7 @@ export function Checkout() {
                 <button
                   onClick={() => setCurrentStep('payment')}
                   disabled={!canProceedToPayment}
-                  className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   Continue to Payment
                 </button>
@@ -348,13 +348,13 @@ export function Checkout() {
 
             {/* Payment Step */}
             {currentStep === 'payment' && (
-              <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6">
+              <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6">
                 <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Select Payment Method</h2>
 
                 <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
                   <div
                     onClick={() => setPaymentMethod('cod')}
-                    className={`p-4 md:p-6 border-2 rounded-full cursor-pointer transition-colors ${
+                    className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${
                       paymentMethod === 'cod'
                         ? 'border-blue-700 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
@@ -378,7 +378,7 @@ export function Checkout() {
 
                   <div
                     onClick={() => setPaymentMethod('gpay')}
-                    className={`p-4 md:p-6 border-2 rounded-full cursor-pointer transition-colors ${
+                    className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${
                       paymentMethod === 'gpay'
                         ? 'border-blue-700 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
@@ -401,12 +401,12 @@ export function Checkout() {
                   </div>
                 </div>
                 {paymentMethod === 'gpay' && (
-                  <div className="border border-green-200 rounded-full p-4 bg-blue-50 mb-4">
+                  <div className="border border-green-200 rounded-lg p-4 bg-blue-50 mb-4">
                     <h3 className="text-base md:text-lg mb-2 text-green-800">Scan & Pay with Google Pay (UPI)</h3>
                     <img
                       src={gpayQrUrl}
                       alt={`Google Pay UPI QR - Pay ₹${total}`}
-                      className="w-56 h-56 md:w-72 md:h-72 object-contain mx-auto rounded-full border bg-white"
+                      className="w-56 h-56 md:w-72 md:h-72 object-contain mx-auto rounded-lg border bg-white"
                     />
                     <p className="text-xs md:text-sm text-gray-600 mt-3 text-center">
                       Scan this QR in GPay and complete payment of <strong>₹{total}</strong>.
@@ -417,7 +417,7 @@ export function Checkout() {
                         handlePlaceOrder('paid');
                       }}
                       disabled={isProcessing}
-                      className="w-full mt-4 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-full hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      className="w-full mt-4 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
                       I Have Paid - Auto Place Order
                     </button>
@@ -428,7 +428,7 @@ export function Checkout() {
                   <button
                     onClick={() => handlePlaceOrder('pending')}
                     disabled={!canPlaceOrder || isProcessing}
-                    className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-full hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
                     {isProcessing ? (
                       <>
@@ -449,7 +449,7 @@ export function Checkout() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-full md:rounded-full shadow-md p-4 md:p-6 lg:sticky lg:top-24">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6 lg:sticky lg:top-24">
               <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Order Summary</h2>
 
               <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
