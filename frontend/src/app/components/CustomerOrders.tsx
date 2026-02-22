@@ -38,7 +38,7 @@ export function CustomerOrders() {
           <Package className="w-16 h-16 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 md:mb-4" />
           <h2 className="text-2xl md:text-3xl mb-3 md:mb-4">No orders yet</h2>
           <p className="text-base md:text-lg text-gray-600 mb-6">Start shopping to see your orders here!</p>
-          <Link to="/" className="inline-block px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <Link to="/" className="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium mt-2">
             Start Shopping
           </Link>
         </div>
