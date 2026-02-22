@@ -16,7 +16,7 @@ export function SearchResults() {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         {/* Search Info */}
         <div className="mb-6 md:mb-8">
@@ -38,7 +38,7 @@ export function SearchResults() {
             </p>
             <Link
               to="/"
-              className="inline-block px-6 md:px-8 py-3 md:py-4 bg-green-600 text-yellow-100 rounded-lg md:rounded-xl hover:bg-green-500 transition-colors text-base md:text-lg"
+              className="inline-block px-6 md:px-8 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg"
             >
               Back to Home
             </Link>
@@ -62,7 +62,7 @@ export function SearchResults() {
 
                 <div className="p-3 md:p-4">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="text-base md:text-xl mb-2 hover:text-green-600 transition-colors line-clamp-1">
+                    <h3 className="text-base md:text-xl mb-2 hover:text-blue-700 transition-colors line-clamp-1">
                       {product.name}
                     </h3>
                   </Link>
@@ -75,26 +75,26 @@ export function SearchResults() {
                     <span className="text-gray-400">|</span>
                     <Link
                       to={`/category/${product.category}`}
-                      className="text-xs md:text-sm text-green-600 hover:underline capitalize truncate"
+                      className="text-xs md:text-sm text-blue-700 hover:underline capitalize truncate"
                     >
                       {product.category}
                     </Link>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-lg md:text-2xl text-green-600 font-bold">
+                    <span className="text-lg md:text-2xl text-blue-700 font-bold">
                       ₹{product.price}
                     </span>
                     <div className="flex gap-2">
                       <Link
                         to={`/product/${product.id}`}
-                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base border border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                       >
                         Details
                       </Link>
                       <button
                         onClick={() => handleAddToCart(product.id, product.name)}
-                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-green-600 text-yellow-100 rounded-lg hover:bg-green-500 transition-colors flex items-center gap-1 md:gap-2"
+                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 md:gap-2"
                       >
                         <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
                         <span className="hidden sm:inline">Add</span>

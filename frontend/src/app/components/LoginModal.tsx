@@ -135,7 +135,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                                             const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                                             setMobile(val);
                                         }}
-                                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all outline-none"
+                                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all outline-none"
                                         placeholder="Enter 10 digit number"
                                         autoFocus
                                     />
@@ -145,7 +145,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                             <button
                                 type="submit"
                                 disabled={mobile.length !== 10 || isLoading}
-                                className="w-full py-3 px-4 bg-green-600 hover:bg-green-500 text-yellow-100 font-medium rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-3 px-4 bg-blue-700 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -187,14 +187,14 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                                         const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                                         setOtp(val);
                                     }}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all outline-none text-center text-lg tracking-widest"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-all outline-none text-center text-lg tracking-widest"
                                     placeholder="Enter 1234"
                                     autoFocus
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setOtp('1234')}
-                                    className="mt-2 text-sm text-green-600 hover:text-green-700 font-medium"
+                                    className="mt-2 text-sm text-blue-700 hover:text-blue-800 font-medium"
                                 >
                                     Use dummy OTP 1234
                                 </button>
@@ -203,7 +203,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                             <button
                                 type="submit"
                                 disabled={otp.length !== 4 || isLoading}
-                                className="w-full py-3 px-4 bg-green-600 hover:bg-green-500 text-yellow-100 font-medium rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-3 px-4 bg-blue-700 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -215,7 +215,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                             <button
                                 type="button"
                                 onClick={() => setStep('mobile')}
-                                className="w-full text-sm text-green-600 hover:text-green-700 hover:underline"
+                                className="w-full text-sm text-blue-700 hover:text-blue-800 hover:underline"
                             >
                                 Change Mobile Number
                             </button>

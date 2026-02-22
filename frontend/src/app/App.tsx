@@ -21,21 +21,21 @@ function AppRoutes() {
   const isAdminPanel = location.pathname.startsWith('/admin-dashboard');
 
   return (
-    <div className={`min-h-screen relative ${isAdminPanel ? 'bg-slate-100' : 'bg-yellow-50/40 pb-16 md:pb-0'}`}>
+    <div className={`min-h-screen relative ${isAdminPanel ? 'bg-slate-100' : 'bg-slate-50 pb-16 md:pb-0'}`}>
       {!isAdminPanel && <Navbar />}
       <main className="relative z-0">
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/category/:category" element={<CategoryPage />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/search" element={<SearchResults />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-        <Route path="/orders" element={<CustomerOrders />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/admin-dashboard" element={<AdminOrderDashboard />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+          <Route path="/orders" element={<CustomerOrders />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/admin-dashboard" element={<AdminOrderDashboard />} />
+        </Routes>
       </main>
       <Toaster position="top-center" richColors />
       {!isAdminPanel && location.pathname === '/' && <Footer />}

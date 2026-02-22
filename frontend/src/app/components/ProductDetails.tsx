@@ -16,7 +16,7 @@ export function ProductDetails() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl mb-4">Product not found</h2>
-          <Link to="/" className="text-green-600 hover:underline">
+          <Link to="/" className="text-blue-700 hover:underline">
             Go back to home
           </Link>
         </div>
@@ -49,13 +49,13 @@ export function ProductDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 mb-4 md:mb-6 overflow-x-auto">
-          <Link to="/" className="hover:text-green-600 whitespace-nowrap">Home</Link>
+          <Link to="/" className="hover:text-blue-700 whitespace-nowrap">Home</Link>
           <span>/</span>
-          <Link to={`/category/${product.category}`} className="hover:text-green-600 capitalize whitespace-nowrap">
+          <Link to={`/category/${product.category}`} className="hover:text-blue-700 capitalize whitespace-nowrap">
             {product.category}
           </Link>
           <span>/</span>
@@ -84,12 +84,12 @@ export function ProductDetails() {
                   <span className="text-lg md:text-2xl text-gray-700">{product.rating}</span>
                 </div>
                 <span className="text-gray-400">|</span>
-                <span className={`text-sm md:text-lg ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-sm md:text-lg ${product.stock > 0 ? 'text-blue-700' : 'text-red-600'}`}>
                   {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                 </span>
               </div>
 
-              <div className="text-2xl md:text-3xl lg:text-4xl text-green-600 font-bold mb-4 md:mb-6">
+              <div className="text-2xl md:text-3xl lg:text-4xl text-blue-700 font-bold mb-4 md:mb-6">
                 ₹{product.price}
               </div>
 
@@ -127,7 +127,7 @@ export function ProductDetails() {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-green-600 text-green-600 rounded-lg md:rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg flex items-center justify-center gap-2"
+                  className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-blue-700 text-blue-700 rounded-lg md:rounded-xl hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
                   Add to Cart
@@ -135,7 +135,7 @@ export function ProductDetails() {
                 <button
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
-                  className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-green-600 text-yellow-100 rounded-lg md:rounded-xl hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg"
+                  className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg"
                 >
                   Buy Now
                 </button>

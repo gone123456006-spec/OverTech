@@ -15,13 +15,13 @@ export function MobileBottomNav() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    const updateCartCount = () => setCartCount(getCartCount());
-    updateCartCount();
-    window.addEventListener('storage', updateCartCount);
-    window.addEventListener('cartUpdated', updateCartCount);
+    const update = () => setCartCount(getCartCount());
+    update();
+    window.addEventListener('storage', update);
+    window.addEventListener('cartUpdated', update);
     return () => {
-      window.removeEventListener('storage', updateCartCount);
-      window.removeEventListener('cartUpdated', updateCartCount);
+      window.removeEventListener('storage', update);
+      window.removeEventListener('cartUpdated', update);
     };
   }, []);
 
@@ -32,7 +32,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden bg-green-700 border-t border-green-600 pb-[env(safe-area-inset-bottom)] pointer-events-auto"
+      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden bg-[#0B1F4D] border-t border-white/10 pb-[env(safe-area-inset-bottom)] pointer-events-auto"
       aria-label="Mobile navigation"
       style={{ isolation: 'isolate' }}
     >
@@ -44,26 +44,20 @@ export function MobileBottomNav() {
             <a
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-0.5 transition-colors touch-manipulation active:scale-95 cursor-pointer no-underline min-h-[44px] ${
-                active ? 'text-yellow-400' : 'text-yellow-100/80'
-              }`}
+              className={`flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-0.5 transition-colors touch-manipulation active:scale-95 cursor-pointer no-underline min-h-[44px] ${active ? 'text-blue-200' : 'text-white/70'
+                }`}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
             >
               <div className="relative">
-                <Icon
-                  className={`w-6 h-6 ${active ? 'stroke-[2.5]' : ''}`}
-                  strokeWidth={active ? 2.5 : 2}
-                />
+                <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 2} />
                 {item.showBadge && cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full pointer-events-none">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium truncate max-w-full">
-                {item.label}
-              </span>
+              <span className="text-[10px] font-medium truncate max-w-full">{item.label}</span>
             </a>
           );
         })}

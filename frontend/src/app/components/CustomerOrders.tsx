@@ -9,7 +9,7 @@ const statusColors: Record<Order['status'], string> = {
   pending: 'bg-amber-100 text-amber-700 border-amber-200',
   accepted: 'bg-blue-100 text-blue-700 border-blue-200',
   out_for_delivery: 'bg-purple-100 text-purple-700 border-purple-200',
-  delivered: 'bg-green-100 text-green-700 border-green-200',
+  delivered: 'bg-blue-50 text-blue-800 border-green-200',
   cancelled: 'bg-red-100 text-red-700 border-red-200'
 };
 
@@ -33,12 +33,12 @@ export function CustomerOrders() {
 
   if (orders.length === 0) {
     return (
-      <div className="min-h-screen bg-yellow-50/40 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="text-center">
           <Package className="w-16 h-16 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 md:mb-4" />
           <h2 className="text-2xl md:text-3xl mb-3 md:mb-4">No orders yet</h2>
           <p className="text-base md:text-lg text-gray-600 mb-6">Start shopping to see your orders here!</p>
-          <Link to="/" className="inline-block px-6 py-3 bg-green-600 text-yellow-100 rounded-lg hover:bg-green-500 transition-colors">
+          <Link to="/" className="inline-block px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors">
             Start Shopping
           </Link>
         </div>
@@ -47,7 +47,7 @@ export function CustomerOrders() {
   }
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         <h1 className="text-2xl md:text-4xl mb-4 md:mb-8">My Orders</h1>
 
@@ -72,7 +72,7 @@ export function CustomerOrders() {
                   </div>
                   <div>
                     <p className="text-xs md:text-sm text-gray-600">Total Amount</p>
-                    <p className="text-base md:text-xl text-green-600 font-bold">₹{order.total}</p>
+                    <p className="text-base md:text-xl text-blue-700 font-bold">₹{order.total}</p>
                   </div>
                   <div className="col-span-2 md:col-span-1">
                     <p className="text-xs md:text-sm text-gray-600 mb-1">Status</p>

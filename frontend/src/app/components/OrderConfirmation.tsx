@@ -26,10 +26,10 @@ export function OrderConfirmation() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-yellow-50/40 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl mb-4">Order not found</h2>
-          <Link to="/" className="text-green-600 hover:underline">
+          <Link to="/" className="text-blue-700 hover:underline">
             Go back to home
           </Link>
         </div>
@@ -40,7 +40,7 @@ export function OrderConfirmation() {
   const estimatedDelivery = '15 - 30 minutes';
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-4 md:py-8">
         {/* Success Animation - It's Done! */}
         <div
@@ -50,7 +50,7 @@ export function OrderConfirmation() {
         >
           <div className="inline-block relative">
             <div className="relative order-done-check">
-              <CheckCircle className="w-20 h-20 md:w-28 md:h-28 text-green-500" />
+              <CheckCircle className="w-20 h-20 md:w-28 md:h-28 text-blue-600" />
             </div>
           </div>
           <div
@@ -58,7 +58,7 @@ export function OrderConfirmation() {
               showDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-3">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-800 text-sm font-semibold mb-3">
               It&apos;s Done!
             </span>
             <h1 className="text-2xl md:text-3xl lg:text-4xl mt-2 mb-2">Order Placed Successfully</h1>
@@ -96,7 +96,7 @@ export function OrderConfirmation() {
                 </div>
                 <div>
                   <p className="text-sm md:text-base text-gray-600">Estimated Delivery</p>
-                  <p className="text-sm md:text-lg text-green-600">{estimatedDelivery}</p>
+                  <p className="text-sm md:text-lg text-blue-700">{estimatedDelivery}</p>
                 </div>
               </div>
             </div>
@@ -167,22 +167,22 @@ export function OrderConfirmation() {
               </div>
               <div className="flex justify-between text-base md:text-lg">
                 <span className="text-gray-600">Delivery:</span>
-                <span className={order.total >= 299 ? 'text-green-600' : ''}>
+                <span className={order.total >= 299 ? 'text-blue-700' : ''}>
                   {order.total >= 299 ? 'FREE' : '₹39'}
                 </span>
               </div>
               <div className="flex justify-between text-xl md:text-2xl border-t pt-2">
                 <span>Total:</span>
-                <span className="text-green-600 font-bold">₹{order.total}</span>
+                <span className="text-blue-700 font-bold">₹{order.total}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* SMS Notification Message */}
-        <div className="bg-yellow-50 border-2 border-green-200 rounded-lg md:rounded-xl p-4 md:p-6 mb-4 md:mb-6">
+        <div className="bg-slate-50 border-2 border-green-200 rounded-lg md:rounded-xl p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex items-start gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-xl md:text-2xl">📱</span>
             </div>
             <div className="min-w-0">
@@ -203,14 +203,14 @@ export function OrderConfirmation() {
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <Link
             to="/orders"
-            className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-green-600 text-yellow-100 rounded-lg md:rounded-xl hover:bg-green-500 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
+            className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
           >
             <Package className="w-4 h-4 md:w-5 md:h-5" />
             View All Orders
           </Link>
           <Link
             to="/"
-            className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-green-600 text-green-600 rounded-lg md:rounded-xl hover:bg-green-50 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
+            className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-blue-700 text-blue-700 rounded-lg md:rounded-xl hover:bg-blue-50 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4 md:w-5 md:h-5" />
             Continue Shopping

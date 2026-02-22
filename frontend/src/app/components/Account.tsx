@@ -62,7 +62,7 @@ export function Account() {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         <h1 className="text-2xl md:text-4xl mb-4 md:mb-8">My Account</h1>
 
@@ -75,7 +75,7 @@ export function Account() {
                 {!isEditing && hasProfile() && (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base text-green-600 border border-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                    className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base text-blue-700 border border-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     Edit
                   </button>
@@ -92,7 +92,7 @@ export function Account() {
                         type="text"
                         value={profile.name}
                         onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your name"
                       />
                     </div>
@@ -106,7 +106,7 @@ export function Account() {
                         type="email"
                         value={profile.email}
                         onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your email"
                       />
                     </div>
@@ -120,7 +120,7 @@ export function Account() {
                         type="tel"
                         value={profile.phone}
                         onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your phone number"
                       />
                     </div>
@@ -129,7 +129,7 @@ export function Account() {
                   <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                     <button
                       onClick={handleSaveProfile}
-                      className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-green-600 text-yellow-100 rounded-lg hover:bg-green-500 transition-colors"
+                      className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
                       Save Profile
                     </button>
@@ -221,7 +221,7 @@ export function Account() {
 
               <button
                 onClick={() => navigate('/orders')}
-                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors text-left flex items-center gap-2 md:gap-3"
+                className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-left flex items-center gap-2 md:gap-3"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />

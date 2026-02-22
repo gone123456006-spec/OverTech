@@ -37,9 +37,9 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       {/* Search Bar */}
-      <div className="bg-yellow-50/40 py-3 px-3 sm:py-4 sm:px-4">
+      <div className="bg-slate-50 py-3 px-3 sm:py-4 sm:px-4">
         <div className="max-w-xl mx-auto">
           <form onSubmit={handleSearch}>
             <div className="relative flex items-center bg-white rounded-full shadow-sm overflow-hidden">
@@ -54,7 +54,7 @@ export function HomePage() {
               />
               <button
                 type="submit"
-                className="m-1 flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-green-600 active:scale-95 transition-all duration-200 text-yellow-100 flex items-center justify-center touch-manipulation hover:bg-green-500"
+                className="m-1 flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-700 active:scale-95 transition-all duration-200 text-white flex items-center justify-center touch-manipulation hover:bg-blue-600"
               >
                 <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -116,7 +116,7 @@ export function HomePage() {
                 <p className="text-white/90 text-xs sm:text-sm md:text-lg mb-1 sm:mb-2 md:mb-3 hidden sm:block">
                   {category.description}
                 </p>
-                <div className="flex items-center text-white group-hover:text-yellow-400 transition-colors">
+                <div className="flex items-center text-white group-hover:text-blue-200 transition-colors">
                   <span className="text-xs sm:text-base md:text-lg">Shop Now</span>
                   <ChevronRight className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 ml-1 sm:ml-2 group-hover:translate-x-2 transition-transform" />
                 </div>
@@ -127,11 +127,11 @@ export function HomePage() {
       </div>
 
       {/* Features Section */}
-      <div className="bg-yellow-50/40 py-6 sm:py-8 md:py-16">
+      <div className="bg-slate-50 py-6 sm:py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 text-center">
             <div className="p-4 md:p-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
                 <svg className="w-7 h-7 md:w-8 md:h-8 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
@@ -141,8 +141,8 @@ export function HomePage() {
             </div>
 
             <div className="p-4 md:p-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <svg className="w-7 h-7 md:w-8 md:h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <svg className="w-7 h-7 md:w-8 md:h-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -151,8 +151,8 @@ export function HomePage() {
             </div>
 
             <div className="p-4 md:p-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <svg className="w-7 h-7 md:w-8 md:h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <svg className="w-7 h-7 md:w-8 md:h-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>

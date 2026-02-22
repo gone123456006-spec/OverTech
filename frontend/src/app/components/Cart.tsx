@@ -52,14 +52,14 @@ export function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-yellow-50/40 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-4" />
           <h2 className="text-3xl mb-4">Your cart is empty</h2>
           <p className="text-xl text-gray-600 mb-8">Add some products to get started!</p>
           <Link
             to="/"
-            className="inline-block px-8 py-4 bg-green-600 text-yellow-100 rounded-xl hover:bg-green-500 transition-colors text-lg"
+            className="inline-block px-8 py-4 bg-blue-700 text-white rounded-xl hover:bg-blue-600 transition-colors text-lg"
           >
             Continue Shopping
           </Link>
@@ -69,7 +69,7 @@ export function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-yellow-50/40">
+    <div className="min-h-screen bg-slate-50">
       {/* Admin-set cart banner */}
       {getBanners().cart && (
         <div className="w-full max-w-7xl mx-auto px-4 pt-4">
@@ -101,12 +101,12 @@ export function Cart() {
 
                     <div className="flex-1 min-w-0">
                       <Link to={`/product/${product.id}`}>
-                        <h3 className="text-base md:text-2xl mb-1 md:mb-2 hover:text-green-600 transition-colors truncate">
+                        <h3 className="text-base md:text-2xl mb-1 md:mb-2 hover:text-blue-700 transition-colors truncate">
                           {product.name}
                         </h3>
                       </Link>
                       <p className="text-xs md:text-base text-gray-600 mb-2 md:mb-4 line-clamp-2">{product.description}</p>
-                      <div className="text-lg md:text-2xl text-green-600 font-semibold mb-3 md:mb-4">₹{product.price}</div>
+                      <div className="text-lg md:text-2xl text-blue-700 font-semibold mb-3 md:mb-4">₹{product.price}</div>
 
                       <div className="flex items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center gap-2 md:gap-3">
@@ -155,13 +155,13 @@ export function Cart() {
 
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">Delivery Charge:</span>
-                  <span className={deliveryCharge === 0 ? 'text-green-600' : ''}>
+                  <span className={deliveryCharge === 0 ? 'text-blue-700' : ''}>
                     {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
                   </span>
                 </div>
 
                 {subtotal < FREE_DELIVERY_THRESHOLD && subtotal > 0 && (
-                  <p className="text-xs md:text-sm text-gray-600 bg-yellow-50 p-2 md:p-3 rounded-lg border border-yellow-200">
+                  <p className="text-xs md:text-sm text-gray-600 bg-slate-50 p-2 md:p-3 rounded-lg border border-blue-200">
                     Add ₹{FREE_DELIVERY_THRESHOLD - subtotal} more to get FREE delivery!
                   </p>
                 )}
@@ -169,7 +169,7 @@ export function Cart() {
                 <div className="border-t pt-3 md:pt-4">
                   <div className="flex justify-between text-xl md:text-2xl">
                     <span>Total:</span>
-                    <span className="text-green-600 font-bold">₹{total}</span>
+                    <span className="text-blue-700 font-bold">₹{total}</span>
                   </div>
                 </div>
               </div>
@@ -182,14 +182,14 @@ export function Cart() {
                     setIsLoginModalOpen(true);
                   }
                 }}
-                className="w-full px-4 md:px-6 py-3 md:py-4 bg-green-600 text-yellow-100 rounded-xl hover:bg-green-500 transition-colors text-base md:text-lg"
+                className="w-full px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg"
               >
                 Proceed to Checkout
               </button>
 
               <Link
                 to="/"
-                className="block text-center mt-3 md:mt-4 text-sm md:text-base text-green-600 hover:underline font-medium"
+                className="block text-center mt-3 md:mt-4 text-sm md:text-base text-blue-700 hover:underline font-medium"
               >
                 Continue Shopping
               </Link>
