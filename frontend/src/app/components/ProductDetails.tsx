@@ -63,10 +63,10 @@ export function ProductDetails() {
         </div>
 
         {/* Product Details */}
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-full md:rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 p-4 md:p-8">
             {/* Product Image */}
-            <div className="relative h-64 md:h-96 lg:h-full bg-gray-100 rounded-lg md:rounded-xl overflow-hidden">
+            <div className="relative h-64 md:h-96 lg:h-full bg-gray-100 rounded-full md:rounded-full overflow-hidden">
               <img
                 src={product.image}
                 alt={product.name}
@@ -127,7 +127,7 @@ export function ProductDetails() {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-blue-700 text-blue-700 rounded-lg md:rounded-xl hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg flex items-center justify-center gap-2"
+                  className="flex-1 px-4 md:px-6 py-3 md:py-4 border-2 border-blue-700 text-blue-700 rounded-full md:rounded-full hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
                   Add to Cart
@@ -135,7 +135,7 @@ export function ProductDetails() {
                 <button
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
-                  className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg"
+                  className="flex-1 px-4 md:px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-full md:rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg"
                 >
                   Buy Now
                 </button>

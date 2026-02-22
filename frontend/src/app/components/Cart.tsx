@@ -73,7 +73,7 @@ export function Cart() {
       {/* Admin-set cart banner */}
       {getBanners().cart && (
         <div className="w-full max-w-7xl mx-auto px-4 pt-4">
-          <div className="rounded-xl overflow-hidden shadow-md">
+          <div className="rounded-full overflow-hidden shadow-md">
             <img src={getBanners().cart} alt="Cart Banner" className="w-full max-h-40 object-cover" />
           </div>
         </div>
@@ -89,13 +89,13 @@ export function Cart() {
               if (!product) return null;
 
               return (
-                <div key={item.productId} className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div key={item.productId} className="bg-white rounded-full shadow-md p-4 md:p-6">
                   <div className="flex gap-3 md:gap-6">
                     <Link to={`/product/${product.id}`} className="flex-shrink-0">
                       <img
                         src={product.image}
                         alt={product.name}
-                        className="w-20 h-20 md:w-32 md:h-32 object-cover rounded-lg"
+                        className="w-20 h-20 md:w-32 md:h-32 object-cover rounded-full"
                       />
                     </Link>
 
@@ -144,7 +144,7 @@ export function Cart() {
 
           {/* Price Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 lg:sticky lg:top-24">
+            <div className="bg-white rounded-full shadow-md p-4 md:p-6 lg:sticky lg:top-24">
               <h2 className="text-xl md:text-2xl mb-4 md:mb-6">Price Summary</h2>
 
               <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
@@ -161,7 +161,7 @@ export function Cart() {
                 </div>
 
                 {subtotal < FREE_DELIVERY_THRESHOLD && subtotal > 0 && (
-                  <p className="text-xs md:text-sm text-gray-600 bg-slate-50 p-2 md:p-3 rounded-lg border border-blue-200">
+                  <p className="text-xs md:text-sm text-gray-600 bg-slate-50 p-2 md:p-3 rounded-full border border-blue-200">
                     Add ₹{FREE_DELIVERY_THRESHOLD - subtotal} more to get FREE delivery!
                   </p>
                 )}
@@ -182,7 +182,7 @@ export function Cart() {
                     setIsLoginModalOpen(true);
                   }
                 }}
-                className="w-full px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg"
+                className="w-full px-4 md:px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-600 transition-colors text-base md:text-lg"
               >
                 Proceed to Checkout
               </button>

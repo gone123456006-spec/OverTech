@@ -70,7 +70,7 @@ export function OrderConfirmation() {
         </div>
 
         {/* Order Details Card */}
-        <div className="bg-white rounded-lg md:rounded-xl shadow-lg p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
+        <div className="bg-white rounded-full md:rounded-full shadow-lg p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
             <div>
               <h2 className="text-xl md:text-2xl mb-3 md:mb-4">Order Information</h2>
@@ -135,7 +135,7 @@ export function OrderConfirmation() {
                 if (!product) return null;
 
                 return (
-                  <div key={item.productId} className="flex gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                  <div key={item.productId} className="flex gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-full">
                     <img
                       src={product.image}
                       alt={product.name}
@@ -177,7 +177,7 @@ export function OrderConfirmation() {
         </div>
 
         {/* SMS Notification Message */}
-        <div className="bg-slate-50 border-2 border-green-200 rounded-lg md:rounded-xl p-4 md:p-6 mb-4 md:mb-6">
+        <div className="bg-slate-50 border-2 border-green-200 rounded-full md:rounded-full p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex items-start gap-3 md:gap-4">
             <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-xl md:text-2xl">📱</span>
@@ -187,7 +187,7 @@ export function OrderConfirmation() {
               <p className="text-sm md:text-base text-gray-700">
                 We've sent a confirmation message to <span className="font-medium">{order.address.mobile}</span>
               </p>
-              <div className="mt-2 md:mt-3 p-2 md:p-3 bg-white rounded-lg border border-green-200">
+              <div className="mt-2 md:mt-3 p-2 md:p-3 bg-white rounded-full border border-green-200">
                 <p className="text-xs md:text-sm text-gray-700">
                   "Your order #{order.id} has been confirmed. Thank you for shopping with us!"
                 </p>
@@ -200,7 +200,7 @@ export function OrderConfirmation() {
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <Link
             to="/orders"
-            className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
+            className="flex-1 px-4 md:px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-full md:rounded-full hover:bg-blue-600 transition-colors text-base md:text-lg text-center flex items-center justify-center gap-2"
           >
             <Package className="w-4 h-4 md:w-5 md:h-5" />
             View All Orders

@@ -45,7 +45,7 @@ export function CategoryPage() {
           {categoryProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg active:shadow-md transition-all duration-300 overflow-hidden group flex flex-col border border-gray-100 min-w-0"
+              className="bg-white rounded-full shadow-md hover:shadow-lg active:shadow-md transition-all duration-300 overflow-hidden group flex flex-col border border-gray-100 min-w-0"
             >
               <Link to={`/product/${product.id}`} className="block flex-shrink-0 relative">
                 <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden bg-gray-50">
@@ -85,13 +85,13 @@ export function CategoryPage() {
                   <div className="flex gap-1 sm:gap-1.5 shrink-0">
                     <Link
                       to={`/product/${product.id}`}
-                      className="min-h-[32px] sm:min-h-[36px] flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-sm font-medium border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors whitespace-nowrap"
+                      className="min-h-[32px] sm:min-h-[36px] flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-sm font-medium border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 active:bg-blue-100 transition-colors whitespace-nowrap"
                     >
                       Details
                     </Link>
                     <button
                       onClick={() => handleAddToCart(product.id, product.name)}
-                      className="min-h-[32px] sm:min-h-[36px] w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all"
+                      className="min-h-[32px] sm:min-h-[36px] w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 active:scale-95 transition-all"
                     >
                       <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
