@@ -32,7 +32,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden bg-[#0B1F4D] border-t border-white/10 pb-[env(safe-area-inset-bottom)] pointer-events-auto"
+      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden bg-white border-t border-yellow-400 pb-[env(safe-area-inset-bottom)] pointer-events-auto shadow-[0_-4px_10px_-2px_rgba(0,0,0,0.05)]"
       aria-label="Mobile navigation"
       style={{ isolation: 'isolate' }}
     >
@@ -44,7 +44,7 @@ export function MobileBottomNav() {
             <a
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-0.5 transition-colors touch-manipulation active:scale-95 cursor-pointer no-underline min-h-[44px] ${active ? 'text-blue-200' : 'text-white/70'
+              className={`flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-0.5 transition-colors touch-manipulation active:scale-95 cursor-pointer no-underline min-h-[44px] ${active ? 'text-yellow-600' : 'text-slate-500 hover:text-slate-800'
                 }`}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
