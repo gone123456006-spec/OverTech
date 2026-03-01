@@ -5,7 +5,7 @@ import { addToCart } from '../utils/storage';
 import { toast } from 'sonner';
 
 const categoryNames = {
-  clothes: 'Clothes',
+  tech: 'Tech',
   jewellery: 'Jewellery',
   food: 'Food'
 };

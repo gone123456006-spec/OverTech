@@ -5,113 +5,113 @@ export interface Product {
   name: string;
   price: number;
   rating: number;
-  category: 'clothes' | 'jewellery' | 'food';
+  category: 'tech' | 'jewellery' | 'food';
   image: string;
   description: string;
   stock: number;
 }
 
 export const products: Product[] = [
-  // Clothes
+  // Tech
   {
-    id: 'c1',
-    name: 'Cotton T-Shirt',
-    price: 499,
-    rating: 4.5,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
-    description: 'Comfortable cotton t-shirt perfect for everyday wear. Made from 100% organic cotton.',
-    stock: 50
-  },
-  {
-    id: 'c2',
-    name: 'Denim Jeans',
-    price: 1299,
-    rating: 4.7,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400',
-    description: 'Classic denim jeans with a modern fit. Durable and stylish for any occasion.',
-    stock: 35
-  },
-  {
-    id: 'c3',
-    name: 'Casual Shirt',
-    price: 899,
-    rating: 4.3,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400',
-    description: 'Versatile casual shirt suitable for office and casual outings.',
-    stock: 40
-  },
-  {
-    id: 'c4',
-    name: 'Summer Dress',
-    price: 1599,
+    id: 't1',
+    name: 'High-Performance Laptop',
+    price: 54999,
     rating: 4.8,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
-    description: 'Elegant summer dress with beautiful floral patterns. Light and breezy fabric.',
-    stock: 25
+    category: 'tech',
+    image: '/assets/images/images (3).jpeg',
+    description: 'Powerful laptop for all your professional needs. High-speed processor and stunning display.',
+    stock: 15
   },
   {
-    id: 'c5',
-    name: 'Hooded Jacket',
-    price: 2199,
-    rating: 4.6,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400',
-    description: 'Warm hooded jacket for cold weather. Water-resistant and windproof.',
+    id: 't2',
+    name: 'Wireless Headphones',
+    price: 2499,
+    rating: 4.5,
+    category: 'tech',
+    image: '/assets/images/images (4) (1).jpeg',
+    description: 'Crystal clear sound with noise cancellation. Long battery life and comfortable fit.',
+    stock: 45
+  },
+  {
+    id: 't3',
+    name: 'Smart Watch Pro',
+    price: 3999,
+    rating: 4.7,
+    category: 'tech',
+    image: '/assets/images/images (5).jpeg',
+    description: 'Track your health and stay connected. Elegant design with a vibrant AMOLED display.',
     stock: 30
   },
   {
-    id: 'c6',
-    name: 'Formal Blazer',
-    price: 2999,
-    rating: 4.9,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400',
-    description: 'Professional blazer perfect for business meetings and formal events.',
-    stock: 20
-  },
-  {
-    id: 'c7',
-    name: 'Cotton Socks Pack',
-    price: 100,
-    rating: 4.3,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1586354782930-d6921b63a881?w=400',
-    description: 'Comfortable pack of 3 cotton socks. Soft, breathable and durable for daily wear.',
-    stock: 80
-  },
-  {
-    id: 'c8',
-    name: 'Cotton Cap',
-    price: 50,
-    rating: 4.2,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400',
-    description: 'Lightweight cotton cap. Perfect for casual wear and sun protection.',
-    stock: 150
-  },
-  {
-    id: 'c9',
-    name: 'Fashion Scarf',
-    price: 199,
-    rating: 4.5,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400',
-    description: 'Lightweight printed scarf. Perfect accessory for outfits or as a head wrap.',
+    id: 't4',
+    name: 'Bluetooth Speaker',
+    price: 1499,
+    rating: 4.4,
+    category: 'tech',
+    image: '/assets/images/images (6).jpeg',
+    description: 'Compact speaker with rich bass. Water-resistant and perfect for outdoor use.',
     stock: 60
   },
   {
-    id: 'c10',
-    name: 'Cotton Handkerchief',
-    price: 35,
-    rating: 4.0,
-    category: 'clothes',
-    image: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400',
-    description: 'Soft cotton handkerchief. Multipurpose - use as pocket square or daily wipe.',
-    stock: 200
+    id: 't5',
+    name: 'Digital Camera X1',
+    price: 28999,
+    rating: 4.9,
+    category: 'tech',
+    image: '/assets/images/images (7).jpeg',
+    description: "Capture life's moments in stunning detail. Professional-grade lens and sensors.",
+    stock: 10
+  },
+  {
+    id: 't6',
+    name: 'Gaming Mouse',
+    price: 999,
+    rating: 4.6,
+    category: 'tech',
+    image: '/assets/images/images (8).jpeg',
+    description: 'Precision and speed for gaming enthusiasts. Ergonomic design and customizable buttons.',
+    stock: 100
+  },
+  {
+    id: 't7',
+    name: 'Mechanical Keyboard',
+    price: 1999,
+    rating: 4.7,
+    category: 'tech',
+    image: '/assets/images/images (9).jpeg',
+    description: 'Tactile typing experience with RGB lighting. Durable keys and heavy-duty build.',
+    stock: 40
+  },
+  {
+    id: 't8',
+    name: 'HIK VISION CCTV Kit',
+    price: 14999,
+    rating: 4.8,
+    category: 'tech',
+    image: '/assets/images/hikvision_cctv_kit.png',
+    description: 'Complete 4-camera security system with DVR. Remote monitoring and night vision.',
+    stock: 20
+  },
+  {
+    id: 't9',
+    name: 'Thermal Billing Printer',
+    price: 8999,
+    rating: 4.6,
+    category: 'tech',
+    image: '/assets/images/thermal_billing_printer_card.png',
+    description: 'Fast and reliable thermal receipt printer. Perfect for retail and restaurants.',
+    stock: 25
+  },
+  {
+    id: 't10',
+    name: 'Web Designing Service',
+    price: 4999,
+    rating: 5.0,
+    category: 'tech',
+    image: '/assets/images/website_designing_card.png',
+    description: 'Professional website design and development. SEO optimized and mobile-friendly.',
+    stock: 50
   },
 
   // Jewellery
