@@ -44,14 +44,14 @@ export function SearchResults() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {results.map((product) => (
               <div
                 key={product.id}
                 className="bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden group"
               >
                 <Link to={`/product/${product.id}`} className="block">
-                  <div className="relative h-48 md:h-64 overflow-hidden bg-gray-100">
+                  <div className="relative h-36 sm:h-48 md:h-64 overflow-hidden bg-gray-100">
                     <img
                       src={product.image}
                       alt={product.name}
@@ -60,14 +60,14 @@ export function SearchResults() {
                   </div>
                 </Link>
 
-                <div className="p-3 md:p-4">
+                <div className="p-2.5 sm:p-3 md:p-4">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="text-base md:text-xl mb-2 hover:text-blue-700 transition-colors line-clamp-1">
+                    <h3 className="text-sm sm:text-base md:text-xl mb-1.5 sm:mb-2 hover:text-blue-700 transition-colors line-clamp-1">
                       {product.name}
                     </h3>
                   </Link>
 
-                  <div className="flex items-center gap-2 mb-3 text-sm md:text-base">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm md:text-base">
                     <div className="flex items-center gap-1 text-yellow-500">
                       <Star className="w-4 h-4 md:w-5 md:h-5 fill-current" />
                       <span className="text-gray-700">{product.rating}</span>
@@ -82,19 +82,19 @@ export function SearchResults() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-lg md:text-2xl text-blue-700 font-bold">
+                    <span className="text-base sm:text-lg md:text-2xl text-blue-700 font-bold">
                       ₹{product.price}
                     </span>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2">
                       <Link
                         to={`/product/${product.id}`}
-                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base border border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                        className="px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base border border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                       >
                         Details
                       </Link>
                       <button
                         onClick={() => handleAddToCart(product.id, product.name)}
-                        className="px-2 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 md:gap-2"
+                        className="px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 md:gap-2"
                       >
                         <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
                         <span className="hidden sm:inline">Add</span>

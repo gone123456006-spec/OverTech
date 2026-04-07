@@ -6,14 +6,9 @@ import { getProductById } from '../data/products';
 import type { CartItem } from '../utils/storage';
 import { toast } from 'sonner';
 
-import { LoginModal } from './LoginModal';
-import { useAuth } from '../context/AuthContext';
-
 export function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadCart();
@@ -176,11 +171,7 @@ export function Cart() {
 
               <button
                 onClick={() => {
-                  if (isAuthenticated) {
-                    navigate('/checkout');
-                  } else {
-                    setIsLoginModalOpen(true);
-                  }
+                  navigate('/checkout');
                 }}
                 className="w-full px-4 md:px-6 py-3 md:py-4 bg-blue-700 text-white rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg"
               >
@@ -197,11 +188,6 @@ export function Cart() {
           </div>
         </div>
       </div>
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={() => navigate('/checkout')}
-      />
     </div>
   );
 }

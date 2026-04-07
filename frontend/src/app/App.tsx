@@ -12,7 +12,6 @@ import { Account } from './components/Account';
 import { AdminOrderDashboard } from './components/AdminOrderDashboard';
 import { CustomerOrders } from './components/CustomerOrders';
 
-import { AuthProvider } from './context/AuthContext';
 import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 
@@ -46,10 +45,8 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, Settings, Monitor, MessageSquare, PlusSquare, Coffee, Briefcase, CreditCard, Printer, FileText, Shield, TrendingUp, PlayCircle, Smartphone, Repeat } from 'lucide-react';
-import { getBanners } from '../utils/storage';
+import { Search, ChevronRight, ChevronLeft, Settings, Monitor, MessageSquare, PlusSquare, Coffee, Briefcase, CreditCard, Printer, FileText, Shield, TrendingUp, PlayCircle, Smartphone, Repeat, Star, ShoppingCart } from 'lucide-react';
+import { getBanners, addToCart } from '../utils/storage';
+import { products } from '../data/products';
+import { toast } from 'sonner';
 
 const categories = [
   {
@@ -29,6 +31,16 @@ export function HomePage() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const navigate = useNavigate();
   const banners = getBanners();
+
+  const techProducts = products.filter(p => p.category === 'tech').slice(0, 8);
+
+  const handleAddToCart = (e: React.MouseEvent, productId: string, productName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(productId, 1);
+    toast.success(`${productName} added to cart!`);
+    window.dispatchEvent(new Event('cartUpdated'));
+  };
 
   const heroBanners = [
     banners.home || '/assets/images/banner-grains-pulses.png',
@@ -170,6 +182,96 @@ export function HomePage() {
                 </div>
               </div>
             </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured Tech Section */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 md:py-16 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-12 gap-4">
+          <div className="relative">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 sm:mb-3 uppercase tracking-tight">
+              Featured <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Tech</span>
+            </h2>
+            <div className="h-1.5 w-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-4"></div>
+            <p className="text-sm sm:text-base md:text-lg text-slate-500 font-medium">Elevate your experience with cutting-edge gadgets</p>
+          </div>
+          <Link 
+            to="/category/tech" 
+            className="group px-6 py-2.5 bg-white border border-slate-200 text-slate-900 hover:border-blue-600 hover:text-blue-600 transition-all rounded-full font-bold text-sm sm:text-base flex items-center gap-2 shadow-sm hover:shadow-md"
+          >
+            Explore All <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-8">
+          {techProducts.map((product) => (
+            <div
+              key={product.id}
+              className="group relative bg-white rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_22px_45px_-12px_rgba(0,0,0,0.1)] border border-slate-100 flex flex-col"
+            >
+              {/* Product Image Wrapper */}
+              <Link to={`/product/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-slate-50">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
+                
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                  {product.stock < 10 && (
+                    <span className="px-3 py-1 text-[11px] font-bold bg-amber-500 text-white rounded-full shadow-lg backdrop-blur-md">
+                      Low Stock
+                    </span>
+                  )}
+                  {product.rating > 4.5 && (
+                    <span className="px-3 py-1 text-[11px] font-bold bg-blue-600 text-white rounded-full shadow-lg backdrop-blur-md">
+                      Best Seller
+                    </span>
+                  )}
+                </div>
+              </Link>
+
+              {/* Product Info */}
+              <div className="p-3 sm:p-6 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded">
+                    Technology
+                  </span>
+                  <div className="flex items-center gap-1 text-slate-400">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
+                    <span className="text-xs font-bold text-slate-600">{product.rating}</span>
+                  </div>
+                </div>
+
+                <Link to={`/product/${product.id}`} className="block mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                    {product.name}
+                  </h3>
+                </Link>
+
+                <div className="mt-auto pt-3 sm:pt-4 flex items-center justify-between border-t border-slate-50">
+                  <div className="flex flex-col">
+                    <span className="text-lg sm:text-2xl font-black text-slate-900">
+                      ₹{product.price.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">
+                      Incl. all taxes
+                    </span>
+                  </div>
+                  
+                  <button
+                    onClick={(e) => handleAddToCart(e, product.id, product.name)}
+                    className="w-12 h-12 flex items-center justify-center bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300 active:scale-95 transition-all group/btn"
+                    aria-label="Add to cart"
+                  >
+                    <ShoppingCart className="w-5 h-5 transition-transform group-hover/btn:-rotate-12" />
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
