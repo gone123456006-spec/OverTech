@@ -75,6 +75,14 @@ export function getAllowedOrigins() {
         .filter(Boolean);
 }
 
+/** Allow configured origins plus any Vercel preview/production URL. */
+export function isOriginAllowed(origin) {
+    if (!origin) return true;
+    const normalized = normalizeOrigin(origin);
+    if (getAllowedOrigins().includes(normalized)) return true;
+    return /^https:\/\/[\w.-]+\.vercel\.app$/i.test(normalized);
+}
+
 export function logProductionConfig() {
     if (process.env.NODE_ENV !== 'production') return;
 

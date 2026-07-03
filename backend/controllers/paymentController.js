@@ -58,7 +58,7 @@ export const createOrder = async (req, res, next) => {
             notes: {
                 customerMobile: normalizedMobile,
                 ...(customerName ? { customerName: String(customerName).slice(0, 60) } : {}),
-                ...(customerAddress ? { customerAddress } : {}),
+                ...(customerAddress ? { customerAddress: JSON.stringify(customerAddress) } : {}),
                 ...notes
             }
         };

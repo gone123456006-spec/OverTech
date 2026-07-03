@@ -10,7 +10,7 @@ Set these in **Render Dashboard → your service → Environment**:
 | `MONGODB_URI` | `mongodb+srv://prabhakarkumargupta901_db_user:YOUR_PASSWORD@cluster0.ctovf9q.mongodb.net/overtech?retryWrites=true&w=majority&appName=Cluster0` |
 | `RAZORPAY_KEY_ID` | `rzp_test_T94xd6dgnawXD5` |
 | `RAZORPAY_KEY_SECRET` | your Razorpay secret |
-| `FRONTEND_URL` | `https://over-tech-git-main-prabhakarkumargupta901-6121s-projects.vercel.app` |
+| `FRONTEND_URL` | `https://over-tech-psi.vercel.app` |
 
 **Important**
 - `MONGODB_URI` value can be the connection string only, or a full `.env` line — the server auto-strips a duplicate `MONGODB_URI=` prefix.
@@ -48,7 +48,7 @@ Or use **Blueprint** with `render.yaml` at repo root (push to GitHub first).
    ✅ MongoDB Connected: ...
    🚀 Server running on port ...
    ```
-5. Verify: `GET https://YOUR-SERVICE.onrender.com/api/health`
+5. Verify: `GET https://overtech-api.onrender.com/api/health`
    ```json
    { "status": "ok", "database": "connected" }
    ```
@@ -58,11 +58,10 @@ Or use **Blueprint** with `render.yaml` at repo root (push to GitHub first).
 Set in Vercel → Environment Variables:
 
 ```
-VITE_API_BASE_URL=https://YOUR-SERVICE.onrender.com
-VITE_APP_URL=https://over-tech-git-main-prabhakarkumargupta901-6121s-projects.vercel.app
+VITE_APP_URL=https://over-tech-psi.vercel.app
 ```
 
-Redeploy frontend after saving.
+Or set the same in **Vercel → Environment Variables** (Production). The repo includes `frontend/.env.production` for builds.
 
 ## Common errors
 

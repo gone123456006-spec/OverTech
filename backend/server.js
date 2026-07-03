@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import connectDB, { closeDatabase, isDatabaseConnected } from './config/database.js';
-import { getAllowedOrigins, validateEnv, logProductionConfig } from './config/env.js';
+import { validateEnv, logProductionConfig, isOriginAllowed } from './config/env.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -26,14 +26,11 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 
-const allowedOrigins = getAllowedOrigins();
-
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
         if (!isProduction) return callback(null, true);
-        const normalized = origin.replace(/\/$/, '');
-        if (allowedOrigins.includes(normalized)) return callback(null, true);
+        if (isOriginAllowed(origin)) return callback(null, true);
         console.warn(`CORS blocked origin: ${origin}`);
         return callback(null, false);
     },
