@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Package } from 'lucide-react';
-import { getOrders } from '../utils/storage';
+import { getOrders, getPaymentMethodLabel } from '../utils/storage';
 import { getProductById } from '../data/products';
 import type { Order } from '../utils/storage';
 
@@ -116,7 +116,7 @@ export function CustomerOrders() {
 
                 <div className="mt-4">
                   <h3 className="text-lg mb-2">Payment Method</h3>
-                  <p className="text-gray-700">{order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Google Pay (UPI)'}</p>
+                  <p className="text-gray-700">{getPaymentMethodLabel(order.paymentMethod)}</p>
                 </div>
 
                 <Link

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, Download, Package, Search, Bell, ChevronRight } from 'lucide-react';
 import { getProductById } from '../data/products';
-import { cancelOrder, getOrders, updateOrderStatus } from '../utils/storage';
+import { cancelOrder, getOrders, updateOrderStatus, getPaymentMethodLabel } from '../utils/storage';
 import type { Order } from '../utils/storage';
 import { toast } from 'sonner';
 
@@ -55,7 +55,7 @@ function downloadInvoice(order: Order) {
     lines.push(`- ${product.name} | Qty: ${item.quantity} | ₹${product.price * item.quantity}`);
   });
   lines.push('');
-  lines.push(`Payment Mode: ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Google Pay (UPI)'}`);
+  lines.push(`Payment Mode: ${getPaymentMethodLabel(order.paymentMethod)}`);
   lines.push(`Payment Status: ${order.paymentStatus}`);
   lines.push(`Total Amount: ₹${order.total}`);
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8;' });
@@ -197,7 +197,7 @@ export function Orders() {
       csvEscape(o.address.mobile),
       csvEscape(fmtDate(o.date)),
       csvEscape(statusLabelMap[o.status]),
-      csvEscape(o.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Google Pay (UPI)'),
+      csvEscape(getPaymentMethodLabel(o.paymentMethod)),
       csvEscape(o.paymentStatus),
       csvEscape(o.total)
     ]);

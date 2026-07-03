@@ -9,9 +9,9 @@ import {
 import { getProductById, getAllProducts } from '../data/products';
 import {
   cancelOrder, getOrders, updateOrderStatus,
-  getBanners, saveBanners, getProductOverrides, saveProductOverride
+  getBanners, saveBanners, getProductOverrides, saveProductOverride,
+  getPaymentMethodLabel
 } from '../utils/storage';
-import type { Order, AdminBanners } from '../utils/storage';
 import { toast } from 'sonner';
 import { SpecialOffersTab } from './SpecialOffersTab';
 
@@ -44,7 +44,7 @@ function downloadInvoice(order: Order) {
     const p = getProductById(i.productId);
     if (p) lines.push(`  ${p.name} × ${i.quantity}  —  ₹${p.price * i.quantity}`);
   });
-  lines.push(``, `Payment: ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Google Pay'}  |  ${order.paymentStatus}`, `Total: ₹${order.total}`);
+  lines.push(``, `Payment: ${getPaymentMethodLabel(order.paymentMethod)}  |  ${order.paymentStatus}`, `Total: ₹${order.total}`);
   const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
   Object.assign(document.createElement('a'), { href: url, download: `invoice-${order.id}.txt` }).click();
   URL.revokeObjectURL(url);

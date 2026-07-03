@@ -1,3 +1,5 @@
+import { apiUrl } from './api';
+
 export type SpecialOfferKind = 'card' | 'tag';
 
 export interface SpecialOffer {
@@ -121,7 +123,7 @@ export function sortActiveOffers(offers: SpecialOffer[]) {
 }
 
 export async function fetchSpecialOffers(): Promise<SpecialOffersPayload> {
-  const res = await fetch('/api/content/special-offers');
+  const res = await fetch(apiUrl('/api/content/special-offers'));
   if (!res.ok) {
     throw new Error('Failed to fetch special offers');
   }
@@ -131,7 +133,7 @@ export async function fetchSpecialOffers(): Promise<SpecialOffersPayload> {
 }
 
 export async function saveSpecialOffers(offers: SpecialOffer[]): Promise<SpecialOffersPayload> {
-  const res = await fetch('/api/content/special-offers', {
+  const res = await fetch(apiUrl('/api/content/special-offers'), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ offers }),

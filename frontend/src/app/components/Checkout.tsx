@@ -5,6 +5,7 @@ import { getCart, getAddresses, saveAddress, createOrder, clearCart } from '../u
 import { getProductById } from '../data/products';
 import type { Address, CartItem } from '../utils/storage';
 import { toast } from 'sonner';
+import { apiUrl } from '../utils/api';
 
 type CheckoutStep = 'address' | 'review' | 'payment';
 
@@ -13,7 +14,7 @@ export function Checkout() {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('address');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'gpay' | 'razorpay' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay' | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => getCart());
@@ -65,11 +66,6 @@ export function Checkout() {
 
   const { subtotal, deliveryCharge, total } = calculateTotal();
 
-  // Dynamic QR: encodes UPI deep link with current order total so scan shows correct amount
-  const gpayQrUrl = `https://quickchart.io/qr?size=320&text=${encodeURIComponent(
-    `upi://pay?pa=shyamroaster-1@okicici&pn=Shyam%20Roaster&am=${total}&cu=INR&tn=Kiran%20Rasan%20Order%20Payment`
-  )}`;
-
   const handleAddAddress = () => {
     if (!newAddress.name || !newAddress.mobile || !newAddress.house ||
       !newAddress.city || !newAddress.state || !newAddress.pincode) {
@@ -97,13 +93,18 @@ export function Checkout() {
     toast.success('Address added successfully');
   };
 
-  const handlePlaceOrder = (paymentStatusOverride?: 'pending' | 'paid') => {
+  const handlePlaceOrder = (
+    paymentStatusOverride?: 'pending' | 'paid',
+    methodOverride?: 'cod' | 'razorpay'
+  ) => {
     if (!selectedAddress) {
       toast.error('Please select a delivery address');
       return;
     }
 
-    if (!paymentMethod) {
+    const method = methodOverride || paymentMethod;
+
+    if (!method) {
       toast.error('Please select a payment method');
       return;
     }
@@ -117,8 +118,8 @@ export function Checkout() {
     setIsProcessing(true);
     orderPlacedRef.current = true;
 
-    const order = createOrder(cartItems, selectedAddress, paymentMethod === 'razorpay' ? 'gpay' : paymentMethod, total, {
-      paymentStatus: paymentStatusOverride || (paymentMethod !== 'cod' ? 'paid' : 'pending')
+    const order = createOrder(cartItems, selectedAddress, method, total, {
+      paymentStatus: paymentStatusOverride || (method === 'razorpay' ? 'paid' : 'pending')
     });
 
     clearCart();
@@ -153,10 +154,10 @@ export function Checkout() {
       return;
     }
 
+    setPaymentMethod('razorpay');
     setIsProcessing(true);
     try {
-      // Step 1: Create order on backend
-      const createRes = await fetch('/api/payment/create-order', {
+      const createRes = await fetch(apiUrl('/api/payment/create-order'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -190,13 +191,13 @@ export function Checkout() {
         description: `Order #${orderData.orderId.slice(-8)}`,
         order_id: orderData.orderId,
         prefill: {
-          contact: selectedAddress.mobile
+          name: selectedAddress.name,
+          contact: selectedAddress.mobile,
         },
-        theme: { color: '#1d4ed8' },
+        theme: { color: '#134e4a' },
         handler: async (response: any) => {
-          // Step 3: Verify payment signature on backend
           try {
-            const verifyRes = await fetch('/api/payment/verify', {
+            const verifyRes = await fetch(apiUrl('/api/payment/verify'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -214,8 +215,9 @@ export function Checkout() {
             }
 
             // Step 4: Place local order
-            handlePlaceOrder('paid');
+            handlePlaceOrder('paid', 'razorpay');
           } catch (err: any) {
+            orderPlacedRef.current = false;
             toast.error(err.message || 'Payment verification failed');
             setIsProcessing(false);
           }
@@ -228,7 +230,6 @@ export function Checkout() {
         }
       };
 
-      // Load Razorpay script dynamically if not already loaded
       if (!(window as any).Razorpay) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script');
@@ -240,8 +241,15 @@ export function Checkout() {
       }
 
       const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', (response: any) => {
+        orderPlacedRef.current = false;
+        toast.error(response.error?.description || 'Payment failed. Please try again.');
+        setIsProcessing(false);
+      });
       rzp.open();
+      setIsProcessing(false);
     } catch (error: any) {
+      orderPlacedRef.current = false;
       toast.error(error.message || 'Payment failed. Please try again.');
       setIsProcessing(false);
     }
@@ -519,29 +527,6 @@ export function Checkout() {
                   </div>
 
                   <div
-                    onClick={() => setPaymentMethod('gpay')}
-                    className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'gpay'
-                      ? 'border-teal-900 bg-teal-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-xl md:text-2xl">📱</span>
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-base md:text-xl truncate">Google Pay (UPI)</h3>
-                          <p className="text-xs md:text-base text-gray-600">Pay instantly using UPI</p>
-                        </div>
-                      </div>
-                      {paymentMethod === 'gpay' && (
-                        <Check className="w-5 h-5 md:w-6 md:h-6 text-teal-900 flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-
-                  <div
                     onClick={() => setPaymentMethod('razorpay')}
                     className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'razorpay'
                       ? 'border-teal-900 bg-teal-50'
@@ -555,7 +540,7 @@ export function Checkout() {
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-base md:text-xl truncate">Razorpay</h3>
-                          <p className="text-xs md:text-base text-gray-600">Card, Net Banking, UPI &amp; Wallets</p>
+                          <p className="text-xs md:text-base text-gray-600">UPI, Cards, Net Banking &amp; Wallets</p>
                         </div>
                       </div>
                       {paymentMethod === 'razorpay' && (
@@ -581,27 +566,6 @@ export function Checkout() {
                       </>
                     )}
                   </button>
-                )}
-
-                {paymentMethod === 'gpay' && (
-                  <div className="border border-green-200 rounded-lg p-4 bg-teal-50 mb-4">
-                    <h3 className="text-base md:text-lg mb-2 text-green-800">Scan & Pay with Google Pay (UPI)</h3>
-                    <img
-                      src={gpayQrUrl}
-                      alt={`Google Pay UPI QR - Pay ₹${total}`}
-                      className="w-56 h-56 md:w-72 md:h-72 object-contain mx-auto rounded-lg border bg-white"
-                    />
-                    <p className="text-xs md:text-sm text-gray-600 mt-3 text-center">
-                      Scan this QR in GPay and complete payment of <strong>₹{total}</strong>.
-                    </p>
-                    <button
-                      onClick={() => handlePlaceOrder('paid')}
-                      disabled={isProcessing}
-                      className="btn-primary w-full mt-4 py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      I Have Paid - Auto Place Order
-                    </button>
-                  </div>
                 )}
 
                 {paymentMethod === 'cod' && (

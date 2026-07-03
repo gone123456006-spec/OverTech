@@ -18,7 +18,7 @@ export interface Order {
   date: string;
   items: CartItem[];
   address: Address;
-  paymentMethod: 'cod' | 'gpay';
+  paymentMethod: 'cod' | 'gpay' | 'razorpay';
   status: 'pending' | 'accepted' | 'out_for_delivery' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'paid' | 'refunded';
   acceptedAt?: string;
@@ -182,7 +182,7 @@ export const getOrders = (): Order[] => {
     return {
       ...order,
       status: normalizedStatus,
-      paymentStatus: order.paymentStatus || (order.paymentMethod === 'gpay' ? 'paid' : 'pending'),
+      paymentStatus: order.paymentStatus || (order.paymentMethod === 'gpay' || order.paymentMethod === 'razorpay' ? 'paid' : 'pending'),
       refundStatus: order.refundStatus || 'not_required',
       deliveryAgentName: order.deliveryAgentName || 'Rider Team',
       deliveryAgentPhone: order.deliveryAgentPhone || '+91 90000 00000'
@@ -190,10 +190,15 @@ export const getOrders = (): Order[] => {
   });
 };
 
+export const getPaymentMethodLabel = (method: Order['paymentMethod']): string => {
+  if (method === 'cod') return 'Cash on Delivery';
+  return 'Razorpay';
+};
+
 export const createOrder = (
   items: CartItem[],
   address: Address,
-  paymentMethod: 'cod' | 'gpay',
+  paymentMethod: 'cod' | 'razorpay',
   total: number,
   options?: { paymentStatus?: Order['paymentStatus'] }
 ): Order => {
@@ -205,7 +210,7 @@ export const createOrder = (
     address,
     paymentMethod,
     status: 'pending',
-    paymentStatus: options?.paymentStatus || (paymentMethod === 'gpay' ? 'paid' : 'pending'),
+    paymentStatus: options?.paymentStatus || (paymentMethod === 'razorpay' ? 'paid' : 'pending'),
     refundStatus: 'not_required',
     deliveryAgentName: 'Rider Team',
     deliveryAgentPhone: '+91 90000 00000',

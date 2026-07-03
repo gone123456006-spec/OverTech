@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircle, Package, MapPin, CreditCard, Home } from 'lucide-react';
-import { getOrderById } from '../utils/storage';
+import { getOrderById, getPaymentMethodLabel } from '../utils/storage';
 import { getProductById } from '../data/products';
 import type { Order } from '../utils/storage';
 
@@ -79,7 +79,7 @@ export function OrderConfirmation() {
                   <div className="min-w-0">
                     <p className="text-sm md:text-base text-gray-600">Payment Method</p>
                     <p className="text-sm md:text-lg">
-                      {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Google Pay (UPI)'}
+                      {getPaymentMethodLabel(order.paymentMethod)}
                     </p>
                   </div>
                 </div>

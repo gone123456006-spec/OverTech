@@ -6,6 +6,7 @@ import { products } from '../data/products';
 import { toast } from 'sonner';
 import { OrderConfirmedModal, type OrderConfirmedState } from './OrderConfirmedModal';
 import { SpecialOfferCard } from './SpecialOfferCard';
+import { SpecialOfferTag } from './SpecialOfferTag';
 import {
   SPECIAL_OFFERS_CACHE_KEY,
   SPECIAL_OFFERS_POLL_MS,
@@ -478,15 +479,9 @@ export function HomePage() {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
                 {offerTags.map((tag) => (
-                  <div key={tag.id} className="flex flex-col items-center justify-center py-3 px-6 border border-slate-300 rounded-lg bg-white">
-                    <div className="text-center">
-                      <div className="text-xs sm:text-sm uppercase text-slate-600 mb-0.5">{tag.title}</div>
-                      <div className="text-xl sm:text-3xl font-semibold text-slate-900">{tag.price}</div>
-                      {tag.subtitle && <div className="text-[10px] sm:text-xs uppercase text-slate-500">{tag.subtitle}</div>}
-                    </div>
-                  </div>
+                  <SpecialOfferTag key={tag.id} offer={tag} />
                 ))}
               </div>
             </div>
