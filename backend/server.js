@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import connectDB, { closeDatabase, isDatabaseConnected } from './config/database.js';
-import { getAllowedOrigins, validateEnv } from './config/env.js';
+import { getAllowedOrigins, validateEnv, logProductionConfig } from './config/env.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -13,6 +13,7 @@ import { generalRateLimiter } from './middleware/rateLimiter.js';
 dotenv.config();
 
 validateEnv();
+logProductionConfig();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -31,8 +32,10 @@ app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
         if (!isProduction) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        callback(new Error(`CORS: Origin ${origin} not allowed`));
+        const normalized = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes(normalized)) return callback(null, true);
+        console.warn(`CORS blocked origin: ${origin}`);
+        return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

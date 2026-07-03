@@ -1,69 +1,81 @@
 # Deploy Backend to Render
 
-## 1. MongoDB Atlas (required for production)
+## Render environment variables (required)
 
-1. Create a free cluster at [MongoDB Atlas](https://cloud.mongodb.com)
-2. Database Access → create a user with password
-3. Network Access → add `0.0.0.0/0` (allow from anywhere) for Render
-4. Connect → Drivers → copy connection string:
-   ```
-   mongodb+srv://USER:PASSWORD@cluster.mongodb.net/overtech?retryWrites=true&w=majority
-   ```
+Set these in **Render Dashboard → your service → Environment**:
 
-## 2. Deploy on Render
+| Variable | Value |
+|----------|--------|
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | `mongodb+srv://prabhakarkumargupta901_db_user:YOUR_PASSWORD@cluster0.ctovf9q.mongodb.net/overtech?retryWrites=true&w=majority&appName=Cluster0` |
+| `RAZORPAY_KEY_ID` | `rzp_test_T94xd6dgnawXD5` |
+| `RAZORPAY_KEY_SECRET` | your Razorpay secret |
+| `FRONTEND_URL` | `https://over-tech-git-main-prabhakarkumargupta901-6121s-projects.vercel.app` |
 
-### Option A — Blueprint (`render.yaml`)
-
-1. Push this repo to GitHub
-2. Render Dashboard → **New** → **Blueprint**
-3. Connect repo — Render reads `render.yaml` at repo root
-4. Set secret environment variables when prompted
-
-### Option B — Manual Web Service
-
-1. Render Dashboard → **New** → **Web Service**
-2. Connect your GitHub repo
-3. Settings:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm install --omit=dev`
-   - **Start Command:** `npm start`
-   - **Health Check Path:** `/api/health`
-
-## 3. Environment variables (Render Dashboard)
-
-| Variable | Example | Required |
-|----------|---------|----------|
-| `NODE_ENV` | `production` | Yes |
-| `MONGODB_URI` | `mongodb+srv://...` | Yes |
-| `RAZORPAY_KEY_ID` | `rzp_live_...` or `rzp_test_...` | Yes |
-| `RAZORPAY_KEY_SECRET` | your secret | Yes |
-| `FRONTEND_URL` | `https://your-app.vercel.app` | Yes |
-
-`FRONTEND_URL` can be comma-separated for multiple origins:
-```
-https://your-app.vercel.app,https://www.yourdomain.com
-```
+**Important**
+- Paste only the connection string for `MONGODB_URI` — do **not** include `MONGODB_URI=` twice.
+- Hostname must be `cluster0.ctovf9q.mongodb.net` — **not** `cluster.mongodb.net`.
+- `FRONTEND_URL` can be comma-separated for multiple sites (no trailing slash).
 
 Render sets `PORT` automatically — do not hardcode it.
 
-## 4. Frontend (after backend is live)
+## MongoDB Atlas
 
-Set in your frontend host (Vercel/Netlify):
+1. [MongoDB Atlas](https://cloud.mongodb.com) → **Network Access** → add `0.0.0.0/0`
+2. **Database Access** → user `prabhakarkumargupta901_db_user` with password
+3. **Connect → Drivers** → copy the `mongodb+srv://...` string
+
+## Render service settings
+
+| Setting | Value |
+|---------|--------|
+| Root Directory | `backend` |
+| Build Command | `npm install --omit=dev` |
+| Start Command | `npm start` |
+| Health Check Path | `/api/health` |
+
+Or use **Blueprint** with `render.yaml` at repo root (push to GitHub first).
+
+## Deploy checklist
+
+1. Push latest code to GitHub (`render.yaml`, `backend/config/env.js`, `backend/config/database.js`)
+2. Set all environment variables above on Render
+3. **Manual Deploy** (or auto-deploy on push)
+4. Open logs — you should see:
+   ```
+   📋 Production config:
+      • MongoDB host: cluster0.ctovf9q.mongodb.net
+   ✅ MongoDB Connected: ...
+   🚀 Server running on port ...
+   ```
+5. Verify: `GET https://YOUR-SERVICE.onrender.com/api/health`
+   ```json
+   { "status": "ok", "database": "connected" }
+   ```
+
+## Frontend (Vercel)
+
+Set in Vercel → Environment Variables:
 
 ```
-VITE_API_BASE_URL=https://your-render-service.onrender.com
+VITE_API_BASE_URL=https://YOUR-SERVICE.onrender.com
+VITE_APP_URL=https://over-tech-git-main-prabhakarkumargupta901-6121s-projects.vercel.app
 ```
 
-Rebuild the frontend so API calls hit Render.
+Redeploy frontend after saving.
 
-## 5. Verify deployment
+## Common errors
 
-- `GET https://your-api.onrender.com/api/health` → `{ "status": "ok", "database": "connected" }`
-- `GET https://your-api.onrender.com/api/content/special-offers` → offers JSON
-- Test Razorpay checkout from the live frontend
+| Log message | Fix |
+|-------------|-----|
+| `querySrv ENOTFOUND _mongodb._tcp.cluster.mongodb.net` | Wrong placeholder URI on Render — use `cluster0.ctovf9q.mongodb.net` |
+| `MONGODB_URI was pasted with a duplicate "MONGODB_URI=" prefix` | Remove extra `MONGODB_URI=` from the value |
+| `Cannot start production server without MongoDB` | Check Atlas Network Access (`0.0.0.0/0`) and password |
+| `CORS blocked origin` | Add your Vercel URL to `FRONTEND_URL` on Render |
+| Health check timeout | Server crashed on startup — check Render logs |
 
 ## Notes
 
-- Special offers and payment transactions are stored in **MongoDB** on production (not local files).
-- Use Razorpay **live keys** only when going live; keep test keys for staging.
-- Never commit `.env` — only set secrets in Render Dashboard.
+- Special offers and payment transactions use **MongoDB** in production.
+- Never commit `.env` — secrets only in Render Dashboard.
+- Use Razorpay live keys only when going live.

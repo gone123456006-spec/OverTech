@@ -1,37 +1,38 @@
+import dns from 'dns';
 import mongoose from 'mongoose';
+import { getMongoUri, isPlaceholder, normalizeMongoUri } from './env.js';
 
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 5000;
 const LOCAL_FALLBACK_URI = 'mongodb://127.0.0.1:27017/overtech';
+const DEFAULT_DNS_SERVERS = ['8.8.8.8', '1.1.1.1', '8.8.4.4'];
 const isProduction = process.env.NODE_ENV === 'production';
-
-const PLACEHOLDER_PATTERNS = [
-    /<username>/i,
-    /<password>/i,
-    /xxxxx/i,
-    /YOUR_/i,
-    /cluster0\.xxxxx/,
-    /USERNAME/,
-    /PASSWORD/,
-];
 
 let memoryServer;
 
-function isPlaceholderUri(uri) {
-    return PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(uri));
+/** Windows/some networks block SRV DNS via system resolver; public DNS fixes mongodb+srv. */
+function configureDnsForSrv(uri) {
+    if (!uri.startsWith('mongodb+srv://')) return;
+
+    const custom = process.env.MONGODB_DNS_SERVERS?.trim();
+    const servers = custom
+        ? custom.split(',').map((s) => s.trim()).filter(Boolean)
+        : DEFAULT_DNS_SERVERS;
+
+    dns.setServers(servers);
 }
 
 function resolveMongoUri() {
-    const configured = process.env.MONGODB_URI?.trim();
+    const configured = getMongoUri();
 
     if (isProduction) {
-        if (!configured || isPlaceholderUri(configured)) {
+        if (!configured || isPlaceholder(configured)) {
             throw new Error('MONGODB_URI is required in production');
         }
         return configured;
     }
 
-    if (!configured || isPlaceholderUri(configured)) {
+    if (!configured || isPlaceholder(configured)) {
         console.warn('⚠️  MONGODB_URI is missing or still a placeholder.');
         console.warn(`   Using local fallback: ${LOCAL_FALLBACK_URI}`);
         return LOCAL_FALLBACK_URI;
@@ -72,8 +73,10 @@ const connectDB = async () => {
 
     try {
         const uri = await getConnectionUri();
+        configureDnsForSrv(uri);
         const conn = await mongoose.connect(uri, {
             serverSelectionTimeoutMS: isProduction ? 30000 : 10000,
+            family: 4,
         });
 
         retryCount = 0;
@@ -99,6 +102,10 @@ const connectDB = async () => {
         }
 
         if (isProduction) {
+            const hint = normalizeMongoUri(process.env.MONGODB_URI);
+            if (/@cluster\.mongodb\.net/i.test(hint)) {
+                console.error('   Tip: Replace cluster.mongodb.net with your Atlas hostname (cluster0.xxxxx.mongodb.net).');
+            }
             console.error('❌ Fatal: could not connect to MongoDB in production.');
             return false;
         }
