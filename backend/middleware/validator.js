@@ -96,6 +96,13 @@ export const validateCreateOrder = [
         .isIn(['INR'])
         .withMessage('Only INR currency is supported'),
 
+    body('customerMobile')
+        .trim()
+        .isLength({ min: 10, max: 10 })
+        .withMessage('Customer mobile must be exactly 10 digits')
+        .matches(/^[6-9]\d{9}$/)
+        .withMessage('Please enter a valid 10-digit Indian mobile number'),
+
     handleValidationErrors
 ];
 

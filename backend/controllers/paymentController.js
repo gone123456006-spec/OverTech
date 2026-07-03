@@ -65,28 +65,33 @@ export const createOrder = async (req, res, next) => {
 
         const razorpayOrder = await razorpay.orders.create(options);
 
-        // Save transaction record
-        const transaction = await Transaction.create({
-            user: null,
-            razorpayOrderId: razorpayOrder.id,
-            amount: amountInPaise,
-            currency,
-            status: 'created',
-            cartSnapshot,
-            notes: {
-                customerMobile: normalizedMobile,
-                ...(customerName ? { customerName: String(customerName).slice(0, 60) } : {}),
-                ...(customerAddress ? { customerAddress } : {}),
-                ...notes
-            }
-        });
+        let transactionId = null;
+        try {
+            const transaction = await Transaction.create({
+                user: null,
+                razorpayOrderId: razorpayOrder.id,
+                amount: amountInPaise,
+                currency,
+                status: 'created',
+                cartSnapshot,
+                notes: {
+                    customerMobile: normalizedMobile,
+                    ...(customerName ? { customerName: String(customerName).slice(0, 60) } : {}),
+                    ...(customerAddress ? { customerAddress } : {}),
+                    ...notes
+                }
+            });
+            transactionId = transaction._id;
+        } catch (dbError) {
+            console.warn('⚠️ Transaction not saved (DB unavailable):', dbError.message);
+        }
 
         res.status(HTTP_STATUS.OK).json({
             orderId: razorpayOrder.id,
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency,
             keyId: process.env.RAZORPAY_KEY_ID,
-            transactionId: transaction._id
+            ...(transactionId ? { transactionId } : {})
         });
 
     } catch (error) {
@@ -129,26 +134,23 @@ export const verifyPayment = async (req, res, next) => {
             });
         }
 
-        // Update transaction as paid
-        const transaction = await Transaction.findOneAndUpdate(
-            { razorpayOrderId },
-            {
-                razorpayPaymentId,
-                razorpaySignature,
-                status: 'paid'
-            },
-            { new: true }
-        );
-
-        if (!transaction) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({
-                message: 'Transaction not found.'
-            });
+        // Update transaction as paid (optional if DB unavailable)
+        try {
+            await Transaction.findOneAndUpdate(
+                { razorpayOrderId },
+                {
+                    razorpayPaymentId,
+                    razorpaySignature,
+                    status: 'paid'
+                },
+                { new: true }
+            );
+        } catch (dbError) {
+            console.warn('⚠️ Transaction update skipped (DB unavailable):', dbError.message);
         }
 
         res.status(HTTP_STATUS.OK).json({
             message: 'Payment verified successfully',
-            transactionId: transaction._id,
             status: 'paid'
         });
 

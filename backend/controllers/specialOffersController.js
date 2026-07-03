@@ -26,7 +26,10 @@ export async function getSpecialOffers(req, res) {
     const data = await readSpecialOffers();
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to load special offers', error: error.message });
+    const message = process.env.NODE_ENV === 'production'
+      ? 'Failed to load special offers'
+      : error.message;
+    res.status(500).json({ message });
   }
 }
 

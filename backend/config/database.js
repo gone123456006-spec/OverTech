@@ -1,35 +1,118 @@
 import mongoose from 'mongoose';
 
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 5000;
+const LOCAL_FALLBACK_URI = 'mongodb://127.0.0.1:27017/overtech';
+const isProduction = process.env.NODE_ENV === 'production';
+
+const PLACEHOLDER_PATTERNS = [
+    /<username>/i,
+    /<password>/i,
+    /xxxxx/i,
+    /YOUR_/i,
+    /cluster0\.xxxxx/,
+    /USERNAME/,
+    /PASSWORD/,
+];
+
+let memoryServer;
+
+function isPlaceholderUri(uri) {
+    return PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(uri));
+}
+
+function resolveMongoUri() {
+    const configured = process.env.MONGODB_URI?.trim();
+
+    if (isProduction) {
+        if (!configured || isPlaceholderUri(configured)) {
+            throw new Error('MONGODB_URI is required in production');
+        }
+        return configured;
+    }
+
+    if (!configured || isPlaceholderUri(configured)) {
+        console.warn('⚠️  MONGODB_URI is missing or still a placeholder.');
+        console.warn(`   Using local fallback: ${LOCAL_FALLBACK_URI}`);
+        return LOCAL_FALLBACK_URI;
+    }
+
+    return configured;
+}
+
+async function getConnectionUri() {
+    const uri = resolveMongoUri();
+
+    if (
+        !isProduction &&
+        process.env.MONGODB_DISABLED !== 'true' &&
+        process.env.MONGODB_USE_MEMORY !== 'false' &&
+        uri === LOCAL_FALLBACK_URI
+    ) {
+        const { MongoMemoryServer } = await import('mongodb-memory-server');
+        if (!memoryServer) {
+            memoryServer = await MongoMemoryServer.create();
+            console.log('ℹ️  Started in-memory MongoDB for local development');
+        }
+        return memoryServer.getUri('overtech');
+    }
+
+    return uri;
+}
+
+export const isDatabaseConnected = () => mongoose.connection.readyState === 1;
+
+let retryCount = 0;
+
 const connectDB = async () => {
+    if (process.env.MONGODB_DISABLED === 'true') {
+        console.log('ℹ️  MongoDB disabled (MONGODB_DISABLED=true).');
+        return false;
+    }
+
     try {
-        const conn = await mongoose.connect(process.env.MONGODB_URI, {
-            // These options are now default in Mongoose 6+
-            // but included for clarity and backwards compatibility
+        const uri = await getConnectionUri();
+        const conn = await mongoose.connect(uri, {
+            serverSelectionTimeoutMS: isProduction ? 30000 : 10000,
         });
 
+        retryCount = 0;
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
 
-        // Connection event handlers
         mongoose.connection.on('error', (err) => {
-            console.error('❌ MongoDB connection error:', err);
+            console.error('❌ MongoDB connection error:', err.message);
         });
 
         mongoose.connection.on('disconnected', () => {
             console.log('⚠️  MongoDB disconnected');
         });
 
-        // Graceful shutdown
-        process.on('SIGINT', async () => {
-            await mongoose.connection.close();
-            console.log('MongoDB connection closed through app termination');
-            process.exit(0);
-        });
-
+        return true;
     } catch (error) {
+        retryCount += 1;
         console.error('❌ MongoDB Connection Error:', error.message);
-        // Retry connection after 5 seconds
-        console.log('🔄 Retrying connection in 5 seconds...');
-        setTimeout(connectDB, 5000);
+
+        if (retryCount < MAX_RETRIES) {
+            console.log(`🔄 Retrying connection in ${RETRY_DELAY_MS / 1000} seconds... (${retryCount}/${MAX_RETRIES})`);
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+            return connectDB();
+        }
+
+        if (isProduction) {
+            console.error('❌ Fatal: could not connect to MongoDB in production.');
+            return false;
+        }
+
+        console.warn('⚠️  MongoDB unavailable. Server continues without database.');
+        return false;
+    }
+};
+
+export const closeDatabase = async () => {
+    await mongoose.connection.close();
+    if (memoryServer) {
+        await memoryServer.stop();
+        memoryServer = null;
     }
 };
 

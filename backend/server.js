@@ -3,100 +3,106 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import connectDB from './config/database.js';
+import connectDB, { closeDatabase, isDatabaseConnected } from './config/database.js';
+import { getAllowedOrigins, validateEnv } from './config/env.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalRateLimiter } from './middleware/rateLimiter.js';
 
-// Load environment variables
 dotenv.config();
 
+validateEnv();
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Connect to Database
-connectDB();
+app.set('trust proxy', 1);
 
-// Security Middleware
 app.use(helmet({
-    crossOriginEmbedderPolicy: false, // Allow Razorpay scripts  
-    contentSecurityPolicy: false
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
 }));
 
-// CORS Configuration
-const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? [process.env.FRONTEND_URL].filter(Boolean)
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173'];
+const allowedOrigins = getAllowedOrigins();
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
-        if (process.env.NODE_ENV !== 'production') return callback(null, true);
+        if (!isProduction) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
         callback(new Error(`CORS: Origin ${origin} not allowed`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Body Parser Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Logging
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-// Global Rate Limiter (applied to all routes)
+app.use(morgan(isProduction ? 'combined' : 'dev'));
 app.use(generalRateLimiter);
 
-// Health Check Route
 app.get('/', (req, res) => {
     res.json({
-        message: '✅ OverTech API is running',
+        message: 'OverTech API is running',
         version: '2.0.0',
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        database: isDatabaseConnected() ? 'connected' : 'disconnected',
     });
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime() });
+    const dbConnected = isDatabaseConnected();
+    const healthy = !isProduction || dbConnected;
+
+    res.status(healthy ? 200 : 503).json({
+        status: healthy ? 'ok' : 'degraded',
+        uptime: process.uptime(),
+        database: dbConnected ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString(),
+    });
 });
 
-// API Routes
 app.use('/api/payment', paymentRoutes);
 app.use('/api/content', contentRoutes);
 
-// Error Handling Middleware (must be after routes)
 app.use(notFound);
 app.use(errorHandler);
 
-// Start Server
-const server = app.listen(PORT, () => {
-    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`💳 Payments: Razorpay enabled\n`);
-});
+let server;
 
-server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`\n❌ Port ${PORT} is already in use.`);
-        console.error(`   Run: Get-NetTCPConnection -LocalPort ${PORT} -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }`);
-        console.error(`   Then restart: npm run dev\n`);
+const startServer = async () => {
+    const dbConnected = await connectDB();
+
+    if (isProduction && !dbConnected) {
+        console.error('❌ Cannot start production server without MongoDB.');
         process.exit(1);
-    } else {
-        throw err;
     }
-});
 
-// Graceful Shutdown
-const shutdown = (signal) => {
+    server = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`\n🚀 Server running on port ${PORT}`);
+        console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`💳 Payments: Razorpay enabled`);
+        console.log(`🗄️  Database: ${dbConnected ? 'connected' : 'not connected'}\n`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`\n❌ Port ${PORT} is already in use.\n`);
+            process.exit(1);
+        }
+        throw err;
+    });
+};
+
+const shutdown = async (signal) => {
     console.log(`\n${signal} received: shutting down gracefully`);
-    server.close(() => {
+    server?.close(async () => {
+        await closeDatabase();
         console.log('HTTP server closed');
         process.exit(0);
     });
@@ -104,5 +110,7 @@ const shutdown = (signal) => {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+startServer();
 
 export default app;
