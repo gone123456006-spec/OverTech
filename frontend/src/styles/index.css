@@ -2,15 +2,34 @@
 @import './tailwind.css';
 @import './theme.css';
 
-/* Order placed - It's Done animation */
-@keyframes orderDonePop {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
-}
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime-300 text-teal-950 font-medium hover:bg-lime-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 
-.order-done-check svg {
-  animation: orderDonePop 0.6s ease-out forwards;
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-teal-900 bg-white text-teal-900 font-medium hover:bg-teal-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary-sm {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-lime-300 text-teal-950 font-medium text-sm hover:bg-lime-400 transition-colors;
+  }
+
+  .btn-outline-sm {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-teal-900 bg-white text-teal-900 font-medium text-sm hover:bg-teal-50 transition-colors;
+  }
+
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-full bg-lime-300 text-teal-950 hover:bg-lime-400 transition-colors;
+  }
+
+  .btn-outline-xs {
+    @apply inline-flex items-center justify-center gap-1 rounded-full border border-teal-900 bg-transparent text-teal-900 font-medium text-xs px-3 py-1 hover:bg-teal-50/60 transition-colors;
+  }
+
+  .text-brand {
+    @apply text-teal-900;
+  }
 }
 
 /* New order highlight in admin - pulse once then fade */

@@ -1,0 +1,73 @@
+{
+  "offers": [
+    {
+      "id": "offer-1",
+      "kind": "card",
+      "title": "Website Designing",
+      "price": "4,999/-",
+      "image": "/assets/images/website_designing_card.png",
+      "sortOrder": 0,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-2",
+      "kind": "card",
+      "title": "Yearly Package",
+      "price": "2,999/-",
+      "image": "/assets/images/digital_marketing_package.png",
+      "sortOrder": 1,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-3",
+      "kind": "card",
+      "title": "HIK VISION",
+      "price": "14,999/-",
+      "image": "/assets/images/hikvision_cctv_kit.png",
+      "sortOrder": 2,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-4",
+      "kind": "card",
+      "title": "Thermal Printer",
+      "price": "8,999/-",
+      "image": "/assets/images/thermal_billing_printer_card.png",
+      "sortOrder": 3,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-5",
+      "kind": "tag",
+      "title": "Voice Calling",
+      "price": "200/-",
+      "subtitle": "1000 ONLY",
+      "sortOrder": 0,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-6",
+      "kind": "tag",
+      "title": "Whatsapp Advertising",
+      "price": "4,999/-",
+      "sortOrder": 1,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    },
+    {
+      "id": "offer-7",
+      "kind": "tag",
+      "title": "Quick Heal Anti Virus",
+      "price": "799/-",
+      "sortOrder": 2,
+      "active": true,
+      "whatsappPhone": "917991163225"
+    }
+  ],
+  "updatedAt": "2026-07-03T00:00:00.000Z"
+}

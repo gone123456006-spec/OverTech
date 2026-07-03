@@ -38,7 +38,7 @@ export function SearchResults() {
             </p>
             <Link
               to="/"
-              className="inline-block px-6 md:px-8 py-3 md:py-4 bg-blue-700 text-white rounded-lg md:rounded-xl hover:bg-blue-600 transition-colors text-base md:text-lg"
+              className="btn-primary px-6 md:px-8 py-3 md:py-4 text-base md:text-lg"
             >
               Back to Home
             </Link>
@@ -62,7 +62,7 @@ export function SearchResults() {
 
                 <div className="p-2.5 sm:p-3 md:p-4">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm sm:text-base md:text-xl mb-1.5 sm:mb-2 hover:text-blue-700 transition-colors line-clamp-1">
+                    <h3 className="text-sm sm:text-base md:text-xl mb-1.5 sm:mb-2 hover:text-teal-900 transition-colors line-clamp-1">
                       {product.name}
                     </h3>
                   </Link>
@@ -75,26 +75,26 @@ export function SearchResults() {
                     <span className="text-gray-400">|</span>
                     <Link
                       to={`/category/${product.category}`}
-                      className="text-xs md:text-sm text-blue-700 hover:underline capitalize truncate"
+                      className="text-xs md:text-sm text-teal-900 hover:underline capitalize truncate"
                     >
                       {product.category}
                     </Link>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-base sm:text-lg md:text-2xl text-blue-700 font-bold">
+                    <span className="text-base sm:text-lg md:text-2xl text-teal-900 font-bold">
                       ₹{product.price}
                     </span>
                     <div className="flex gap-1.5 sm:gap-2">
                       <Link
                         to={`/product/${product.id}`}
-                        className="px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base border border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                        className="btn-outline-sm px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base"
                       >
                         Details
                       </Link>
                       <button
                         onClick={() => handleAddToCart(product.id, product.name)}
-                        className="px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 md:gap-2"
+                        className="btn-primary-sm px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base"
                       >
                         <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
                         <span className="hidden sm:inline">Add</span>

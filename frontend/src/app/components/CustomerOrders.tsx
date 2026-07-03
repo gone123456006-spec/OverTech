@@ -7,9 +7,9 @@ import type { Order } from '../utils/storage';
 
 const statusColors: Record<Order['status'], string> = {
   pending: 'bg-amber-100 text-amber-700 border-amber-200',
-  accepted: 'bg-blue-100 text-blue-700 border-blue-200',
+  accepted: 'bg-teal-100 text-teal-900 border-teal-200',
   out_for_delivery: 'bg-purple-100 text-purple-700 border-purple-200',
-  delivered: 'bg-blue-50 text-blue-800 border-green-200',
+  delivered: 'bg-teal-50 text-teal-900 border-green-200',
   cancelled: 'bg-red-100 text-red-700 border-red-200'
 };
 
@@ -38,7 +38,7 @@ export function CustomerOrders() {
           <Package className="w-16 h-16 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 md:mb-4" />
           <h2 className="text-2xl md:text-3xl mb-3 md:mb-4">No orders yet</h2>
           <p className="text-base md:text-lg text-gray-600 mb-6">Start shopping to see your orders here!</p>
-          <Link to="/" className="inline-block px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <Link to="/" className="btn-primary px-6 py-3">
             Start Shopping
           </Link>
         </div>
@@ -72,7 +72,7 @@ export function CustomerOrders() {
                   </div>
                   <div>
                     <p className="text-xs md:text-sm text-gray-600">Total Amount</p>
-                    <p className="text-base md:text-xl text-blue-700 font-bold">₹{order.total}</p>
+                    <p className="text-base md:text-xl text-teal-900 font-bold">₹{order.total}</p>
                   </div>
                   <div className="col-span-2 md:col-span-1">
                     <p className="text-xs md:text-sm text-gray-600 mb-1">Status</p>
@@ -96,10 +96,10 @@ export function CustomerOrders() {
                         </Link>
                         <div className="flex-1 min-w-0">
                           <Link to={`/product/${product.id}`}>
-                            <h3 className="text-base md:text-xl hover:text-blue-600 transition-colors mb-1 truncate">{product.name}</h3>
+                            <h3 className="text-base md:text-xl hover:text-teal-800 transition-colors mb-1 truncate">{product.name}</h3>
                           </Link>
                           <p className="text-sm md:text-base text-gray-600">Quantity: {item.quantity}</p>
-                          <p className="text-sm md:text-lg text-blue-600">₹{product.price} x {item.quantity} = ₹{product.price * item.quantity}</p>
+                          <p className="text-sm md:text-lg text-teal-800">₹{product.price} x {item.quantity} = ₹{product.price * item.quantity}</p>
                         </div>
                       </div>
                     );
@@ -121,7 +121,7 @@ export function CustomerOrders() {
 
                 <Link
                   to={`/order-confirmation/${order.id}`}
-                  className="mt-6 flex items-center justify-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="mt-6 btn-outline px-6 py-3"
                 >
                   View Order Details
                   <ChevronRight className="w-5 h-5" />

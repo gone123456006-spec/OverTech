@@ -32,7 +32,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white shadow-md border-b border-yellow-400 pointer-events-auto">
+      <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 pointer-events-auto">
         <div className="max-w-7xl mx-auto px-3 sm:px-4">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <a href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity no-underline group">
@@ -51,7 +51,7 @@ export function Navbar() {
                 return (
                   <a key={link.path} href={link.path}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors relative no-underline font-medium
-                      ${isActive(link.path) ? 'bg-yellow-100 text-yellow-700' : 'text-slate-700 hover:bg-yellow-50 hover:text-yellow-600'}`}
+                      ${isActive(link.path) ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{link.label}</span>
@@ -84,7 +84,7 @@ export function Navbar() {
                 return (
                   <a key={link.path} href={link.path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors relative no-underline font-medium
-                      ${isActive(link.path) ? 'bg-yellow-100 text-yellow-700' : 'text-slate-700 hover:bg-yellow-50 hover:text-yellow-600'}`}
+                      ${isActive(link.path) ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}
                   >
                     <Icon className="w-6 h-6" />
                     <span className="text-base">{link.label}</span>

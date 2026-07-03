@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import connectDB from './config/database.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalRateLimiter } from './middleware/rateLimiter.js';
 
@@ -68,6 +69,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/payment', paymentRoutes);
+app.use('/api/content', contentRoutes);
 
 // Error Handling Middleware (must be after routes)
 app.use(notFound);

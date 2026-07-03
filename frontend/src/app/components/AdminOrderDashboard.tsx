@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, Check, ChevronRight, Clock, Download,
   Image, ImagePlus, LayoutGrid, Package, Pencil, RefreshCw,
-  Save, Search, ShoppingBag, ShoppingCart, Trash2, TrendingUp,
+  Save, Search, ShoppingBag, ShoppingCart, Tag, Trash2, TrendingUp,
   Truck, Upload, X, XCircle, DollarSign, Users, BarChart2
 } from 'lucide-react';
 import { getProductById, getAllProducts } from '../data/products';
@@ -13,15 +13,16 @@ import {
 } from '../utils/storage';
 import type { Order, AdminBanners } from '../utils/storage';
 import { toast } from 'sonner';
+import { SpecialOffersTab } from './SpecialOffersTab';
 
 /* ── Design tokens ─────────────────────────────────────────────── */
-// Apple palette: #F5F5F7 bg, #1D1D1F text, #6E6E73 secondary, #0071E3 accent
+// Apple palette: #F5F5F7 bg, #1D1D1F text, #6E6E73 secondary, #134e4a accent
 const SF = `font-['SF_Pro_Display',-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif]`;
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 const STATUS_META: Record<Order['status'], { label: string; dot: string; pill: string }> = {
   pending: { label: 'Pending', dot: 'bg-amber-400', pill: 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' },
-  accepted: { label: 'Accepted', dot: 'bg-blue-400', pill: 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' },
+  accepted: { label: 'Accepted', dot: 'bg-teal-400', pill: 'bg-teal-50 text-teal-800 ring-1 ring-teal-200' },
   out_for_delivery: { label: 'Out for Delivery', dot: 'bg-indigo-400', pill: 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200' },
   delivered: { label: 'Delivered', dot: 'bg-green-400', pill: 'bg-green-50 text-green-600 ring-1 ring-green-200' },
   cancelled: { label: 'Cancelled', dot: 'bg-red-400', pill: 'bg-red-50 text-red-500 ring-1 ring-red-200' },
@@ -104,7 +105,7 @@ function PrimaryBtn({ children, onClick, disabled }: { children: React.ReactNode
     <button
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0071E3] hover:bg-[#0077ED] active:bg-[#0068D0] text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-40"
+      className="btn-primary-sm px-3.5 py-1.5 text-xs"
     >
       {children}
     </button>
@@ -117,7 +118,7 @@ function MetricCard({ label, value, sub, icon: Icon, accent = false }:
   return (
     <div className="bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.04)]">
       {Icon && (
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 ${accent ? 'bg-[#0071E3]' : 'bg-[#F5F5F7]'}`}>
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 ${accent ? 'bg-teal-900 text-white' : 'bg-[#F5F5F7]'}`}>
           <Icon className={`w-4 h-4 ${accent ? 'text-white' : 'text-[#6E6E73]'}`} />
         </div>
       )}
@@ -138,7 +139,7 @@ function OrderCard({ order, highlight, actions }: { order: Order; highlight?: bo
   return (
     <div className={`bg-white rounded-2xl p-5 transition-all duration-300
       ${highlight
-        ? 'ring-2 ring-[#0071E3]/30 shadow-[0_0_0_4px_rgba(0,113,227,0.06)]'
+        ? 'ring-2 ring-[#134e4a]/30 shadow-[0_0_0_4px_rgba(0,113,227,0.06)]'
         : 'shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]'}`}
     >
       {/* Header row */}
@@ -149,7 +150,7 @@ function OrderCard({ order, highlight, actions }: { order: Order; highlight?: bo
           </span>
           <Pill status={order.status} />
           {isToday(order.date) && (
-            <span className="text-[10px] font-semibold text-[#0071E3] bg-blue-50 px-2 py-0.5 rounded-full ring-1 ring-blue-100">TODAY</span>
+            <span className="text-[10px] font-semibold text-teal-900 bg-teal-50 px-2 py-0.5 rounded-full ring-1 ring-teal-100">TODAY</span>
           )}
         </div>
         <span className="text-sm font-semibold text-[#1D1D1F] tabular-nums whitespace-nowrap">₹{order.total}</span>
@@ -215,13 +216,13 @@ function BannerField({ label, hint, value, onChange }:
           <input
             type="text" placeholder="Paste image URL…" value={url}
             onChange={e => setUrl(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl border-0 outline-none focus:ring-2 focus:ring-[#0071E3]/30 placeholder-[#9E9EA7] text-[#1D1D1F]"
+            className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl border-0 outline-none focus:ring-2 focus:ring-[#134e4a]/30 placeholder-[#9E9EA7] text-[#1D1D1F]"
           />
           <PrimaryBtn onClick={() => { onChange(url); toast.success('Applied'); }}>
             Apply
           </PrimaryBtn>
         </div>
-        <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-[#D2D2D7] hover:border-[#0071E3] text-xs text-[#6E6E73] hover:text-[#0071E3] cursor-pointer transition-colors">
+        <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-[#D2D2D7] hover:border-[#134e4a] text-xs text-[#6E6E73] hover:text-[#134e4a] cursor-pointer transition-colors">
           <Upload className="w-3.5 h-3.5" /> Upload from device
           <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
         </label>
@@ -321,7 +322,7 @@ function OrdersTab() {
           </div>
           <p className="text-[#1D1D1F] font-medium">No orders yet</p>
           <p className="text-sm text-[#6E6E73] mt-1">Orders will appear here once customers check out</p>
-          <Link to="/" className="mt-5 inline-flex items-center gap-1.5 text-sm text-[#0071E3] font-medium hover:underline">
+          <Link to="/" className="mt-5 inline-flex items-center gap-1.5 text-sm text-[#134e4a] font-medium hover:underline">
             View store <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
@@ -446,7 +447,7 @@ function ProductsTab() {
                 <div className="flex items-center gap-4 p-4">
                   <div className="relative flex-shrink-0">
                     <img src={product.image} alt={product.name} className="w-14 h-14 rounded-xl object-cover bg-[#F5F5F7]" />
-                    {hasOverride && <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#0071E3] ring-2 ring-white" />}
+                    {hasOverride && <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#134e4a] ring-2 ring-white" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-[#1D1D1F] truncate">{product.name}</p>
@@ -479,17 +480,17 @@ function ProductsTab() {
                       <div className="col-span-2">
                         <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Name</p>
                         <input value={e.name} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], name: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F]" />
+                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Price (₹)</p>
                         <input type="number" value={e.price} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], price: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F]" />
+                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Stock</p>
                         <input type="number" value={e.stock} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], stock: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F]" />
+                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
                       </div>
                     </div>
                   </div>
@@ -498,14 +499,14 @@ function ProductsTab() {
                   <div>
                     <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Image URL</p>
                     <input value={e.image} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], image: ev.target.value } }))}
-                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F]" />
+                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
                   </div>
 
                   {/* Description */}
                   <div>
                     <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Description</p>
                     <textarea value={e.description} rows={2} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], description: ev.target.value } }))}
-                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F] resize-none" />
+                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F] resize-none" />
                   </div>
 
                   {/* Product Banner */}
@@ -516,7 +517,7 @@ function ProductsTab() {
                     {e.banner && <img src={e.banner} alt="" className="w-full h-16 object-cover rounded-xl mb-2" />}
                     <div className="flex gap-2">
                       <input value={e.banner} placeholder="Banner URL…" onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], banner: ev.target.value } }))}
-                        className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#0071E3]/25 text-[#1D1D1F]" />
+                        className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
                       <label className="px-3 py-2 rounded-xl bg-[#F5F5F7] text-xs text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer flex items-center gap-1 transition-colors">
                         <Upload className="w-3 h-3" /> File
                         <input type="file" accept="image/*" className="hidden" onChange={ev => fileToField(product.id, 'banner', ev)} />
@@ -633,7 +634,7 @@ function AnalyticsTab() {
             <div key={m.label} className="flex-1 flex flex-col items-center gap-1">
               <span className="text-[10px] text-[#9E9EA7]">{m.orders || ''}</span>
               <div className="w-full rounded-lg transition-all"
-                style={{ height: `${Math.max(4, (m.orders / maxO) * 100)}%`, background: 'linear-gradient(180deg,#0071E3 0%,#34AADC 100%)' }}
+                style={{ height: `${Math.max(4, (m.orders / maxO) * 100)}%`, background: 'linear-gradient(180deg,#134e4a 0%,#2dd4bf 100%)' }}
                 title={`₹${m.revenue}`} />
               <span className="text-[10px] text-[#6E6E73] font-medium">{m.label}</span>
             </div>
@@ -720,12 +721,13 @@ function AnalyticsTab() {
 /* ══════════════════════════════════════════════════════════════ */
 /*  MAIN — Apple-style top nav + content area                     */
 /* ══════════════════════════════════════════════════════════════ */
-type Tab = 'orders' | 'products' | 'banners' | 'analytics';
+type Tab = 'orders' | 'products' | 'banners' | 'offers' | 'analytics';
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: 'orders', label: 'Orders', icon: Package },
   { id: 'products', label: 'Products', icon: ShoppingBag },
   { id: 'banners', label: 'Banners', icon: ImagePlus },
+  { id: 'offers', label: 'Offers', icon: Tag },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
@@ -774,7 +776,7 @@ export function AdminOrderDashboard() {
 
             {/* Store link */}
             <Link to="/"
-              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-[#0071E3] font-medium hover:underline">
+              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-[#134e4a] font-medium hover:underline">
               <ShoppingCart className="w-3.5 h-3.5" />
               <span className="hidden sm:block">Store</span>
             </Link>
@@ -800,6 +802,7 @@ export function AdminOrderDashboard() {
         {tab === 'orders' && <OrdersTab />}
         {tab === 'products' && <ProductsTab />}
         {tab === 'banners' && <BannersTab />}
+        {tab === 'offers' && <SpecialOffersTab />}
         {tab === 'analytics' && <AnalyticsTab />}
       </main>
     </div>

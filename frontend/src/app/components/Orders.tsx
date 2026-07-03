@@ -238,7 +238,7 @@ export function Orders() {
           </div>
           <div>
             <p className="text-xs text-gray-500">Amount</p>
-            <p className="text-blue-800 font-semibold">₹{order.total}</p>
+            <p className="text-teal-900 font-semibold">₹{order.total}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500">Payment</p>
@@ -272,7 +272,7 @@ export function Orders() {
           <h1 className="text-2xl md:text-4xl">Order Dashboard</h1>
           <button
             onClick={exportCsv}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="btn-primary-sm px-4 py-2"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -282,11 +282,11 @@ export function Orders() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
           <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Total Orders</p><p className="text-xl">{summary.totalOrders}</p></div>
           <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Pending</p><p className="text-xl text-amber-700">{summary.pendingOrders}</p></div>
-          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Accepted</p><p className="text-xl text-blue-700">{summary.acceptedOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Accepted</p><p className="text-xl text-teal-900">{summary.acceptedOrders}</p></div>
           <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Out for Delivery</p><p className="text-xl text-indigo-700">{summary.outForDelivery}</p></div>
-          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Delivered</p><p className="text-xl text-blue-800">{summary.deliveredOrders}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Delivered</p><p className="text-xl text-teal-900">{summary.deliveredOrders}</p></div>
           <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Cancelled</p><p className="text-xl text-red-700">{summary.cancelledOrders}</p></div>
-          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Revenue</p><p className="text-xl text-blue-800">₹{summary.totalRevenue}</p></div>
+          <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Revenue</p><p className="text-xl text-teal-900">₹{summary.totalRevenue}</p></div>
           <div className="bg-white rounded-lg p-3 shadow"><p className="text-xs text-gray-500">Today's Orders</p><p className="text-xl">{summary.todaysOrders}</p></div>
         </div>
 
@@ -334,7 +334,7 @@ export function Orders() {
               <div key={m.label} className="text-center">
                 <div className="h-40 flex items-end justify-center">
                   <div
-                    className="w-8 md:w-12 bg-blue-600 rounded-t"
+                    className="w-8 md:w-12 bg-teal-900 rounded-t"
                     style={{ height: `${Math.max(10, (m.orders / maxOrdersInMonth) * 100)}%` }}
                     title={`${m.orders} orders | ₹${m.revenue}`}
                   />
@@ -372,18 +372,18 @@ export function Orders() {
                 <div
                   key={order.id}
                   className={`rounded-lg transition-all duration-500 ${
-                    newOrderId === order.id ? 'ring-2 ring-blue-500 bg-blue-50/50 animate-pulse' : ''
+                    newOrderId === order.id ? 'ring-2 ring-teal-500 bg-teal-50/50 animate-pulse' : ''
                   }`}
                   style={newOrderId === order.id ? { animationDuration: '1.5s' } : undefined}
                 >
                   {newOrderId === order.id && (
-                    <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-blue-600 animate-ping" /> It&apos;s Done! New order
+                    <div className="text-sm font-semibold text-teal-900 mb-2 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-teal-900 animate-ping" /> It&apos;s Done! New order
                     </div>
                   )}
                   {renderOrderRow(order)}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <button onClick={() => { updateOrderStatus(order.id, 'accepted'); toast.success('Order accepted'); }} className="px-3 py-1.5 text-sm bg-blue-700 text-white rounded">Accept</button>
+                    <button onClick={() => { updateOrderStatus(order.id, 'accepted'); toast.success('Order accepted'); }} className="btn-primary-sm px-3 py-1.5 text-sm">Accept</button>
                     <button onClick={() => { cancelOrder(order.id, 'Rejected by admin'); toast.info('Order rejected'); }} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded">Reject</button>
                   </div>
                 </div>
@@ -418,7 +418,7 @@ export function Orders() {
                     <strong>Agent:</strong> {order.deliveryAgentName} ({order.deliveryAgentPhone}) | <strong>ETA:</strong> 15 - 30 minutes
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <button onClick={() => { updateOrderStatus(order.id, 'delivered'); toast.success('Marked delivered'); }} className="px-3 py-1.5 text-sm bg-[#0B1F4D] text-white rounded">Mark as Delivered</button>
+                    <button onClick={() => { updateOrderStatus(order.id, 'delivered'); toast.success('Marked delivered'); }} className="btn-primary-sm px-3 py-1.5 text-sm">Mark as Delivered</button>
                   </div>
                 </div>
               ))}
@@ -468,7 +468,7 @@ export function Orders() {
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-600">No orders yet. Place first order from checkout.</p>
-            <Link to="/" className="inline-block mt-4 px-4 py-2 bg-blue-700 text-white rounded-lg">Start Shopping</Link>
+            <Link to="/" className="btn-primary-sm mt-4 px-4 py-2">Start Shopping</Link>
           </div>
         )}
       </div>

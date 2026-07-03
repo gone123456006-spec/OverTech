@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, MapPin, CreditCard, Package, ChevronLeft, Loader2 } from 'lucide-react';
 import { getCart, getAddresses, saveAddress, createOrder, clearCart } from '../utils/storage';
 import { getProductById } from '../data/products';
-import type { Address } from '../utils/storage';
+import type { Address, CartItem } from '../utils/storage';
 import { toast } from 'sonner';
 
 type CheckoutStep = 'address' | 'review' | 'payment';
@@ -16,6 +16,8 @@ export function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'gpay' | 'razorpay' | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => getCart());
+  const orderPlacedRef = useRef(false);
 
   const [newAddress, setNewAddress] = useState({
     name: '',
@@ -26,14 +28,21 @@ export function Checkout() {
     pincode: ''
   });
 
-  const cartItems = getCart();
+  useEffect(() => {
+    const syncCart = () => setCartItems(getCart());
+    syncCart();
+    window.addEventListener('cartUpdated', syncCart);
+    return () => window.removeEventListener('cartUpdated', syncCart);
+  }, []);
 
   useEffect(() => {
+    if (orderPlacedRef.current) return;
     if (cartItems.length === 0) {
-      navigate('/cart');
+      navigate('/cart', { replace: true });
+      return;
     }
     loadAddresses();
-  }, [cartItems, navigate]);
+  }, [cartItems.length, navigate]);
 
   const loadAddresses = () => {
     const savedAddresses = getAddresses();
@@ -99,14 +108,31 @@ export function Checkout() {
       return;
     }
 
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      navigate('/cart', { replace: true });
+      return;
+    }
+
     setIsProcessing(true);
+    orderPlacedRef.current = true;
+
     const order = createOrder(cartItems, selectedAddress, paymentMethod === 'razorpay' ? 'gpay' : paymentMethod, total, {
       paymentStatus: paymentStatusOverride || (paymentMethod !== 'cod' ? 'paid' : 'pending')
     });
+
     clearCart();
     window.dispatchEvent(new Event('cartUpdated'));
     setIsProcessing(false);
-    navigate(`/order-confirmation/${order.id}`);
+    navigate('/', {
+      replace: true,
+      state: {
+        orderConfirmed: {
+          orderId: order.id,
+          contactMobile: selectedAddress.mobile,
+        },
+      },
+    });
   };
 
   /**
@@ -188,7 +214,6 @@ export function Checkout() {
             }
 
             // Step 4: Place local order
-            toast.success('Payment successful! Placing your order...');
             handlePlaceOrder('paid');
           } catch (err: any) {
             toast.error(err.message || 'Payment verification failed');
@@ -258,8 +283,8 @@ export function Checkout() {
             return (
               <div key={step.id} className="flex items-center">
                 <div className="flex flex-col items-center">
-                  <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center border-2 transition-colors ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' :
-                    isActive ? 'bg-blue-700 border-blue-700 text-white' :
+                  <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center border-2 transition-colors ${isCompleted ? 'bg-teal-900 border-teal-600 text-white' :
+                    isActive ? 'bg-teal-900 border-teal-900 text-white' :
                       'bg-white border-gray-300 text-gray-400'
                     }`}>
                     {isCompleted ? <Check className="w-5 h-5 md:w-8 md:h-8" /> : <Icon className="w-5 h-5 md:w-8 md:h-8" />}
@@ -269,7 +294,7 @@ export function Checkout() {
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`w-12 md:w-32 h-1 mx-2 md:mx-4 ${isCompleted ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                  <div className={`w-12 md:w-32 h-1 mx-2 md:mx-4 ${isCompleted ? 'bg-teal-900' : 'bg-gray-300'}`} />
                 )}
               </div>
             );
@@ -291,7 +316,7 @@ export function Checkout() {
                         key={address.id}
                         onClick={() => setSelectedAddress(address)}
                         className={`p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-colors ${selectedAddress?.id === address.id
-                          ? 'border-blue-700 bg-blue-50'
+                          ? 'border-teal-900 bg-teal-50'
                           : 'border-gray-200 hover:border-gray-300'
                           }`}
                       >
@@ -305,7 +330,7 @@ export function Checkout() {
                             </p>
                           </div>
                           {selectedAddress?.id === address.id && (
-                            <Check className="w-5 h-5 md:w-6 md:h-6 text-blue-700 flex-shrink-0" />
+                            <Check className="w-5 h-5 md:w-6 md:h-6 text-teal-900 flex-shrink-0" />
                           )}
                         </div>
                       </div>
@@ -316,7 +341,7 @@ export function Checkout() {
                 {!showAddressForm ? (
                   <button
                     onClick={() => setShowAddressForm(true)}
-                    className="w-full px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base border-2 border-blue-700 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="btn-outline w-full py-2.5 md:py-3 text-sm md:text-base"
                   >
                     + Add New Address
                   </button>
@@ -329,7 +354,7 @@ export function Checkout() {
                         placeholder="Full Name"
                         value={newAddress.name}
                         onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
                         type="tel"
@@ -338,41 +363,41 @@ export function Checkout() {
                         inputMode="numeric"
                         maxLength={10}
                         onChange={(e) => setNewAddress({ ...newAddress, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
                         type="text"
                         placeholder="House / Street"
                         value={newAddress.house}
                         onChange={(e) => setNewAddress({ ...newAddress, house: e.target.value })}
-                        className="md:col-span-2 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="md:col-span-2 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
                         type="text"
                         placeholder="City"
                         value={newAddress.city}
                         onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
                         type="text"
                         placeholder="State"
                         value={newAddress.state}
                         onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
                         type="text"
                         placeholder="Pincode"
                         value={newAddress.pincode}
                         onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-3 md:mt-4">
                       <button
                         onClick={handleAddAddress}
-                        className="flex-1 px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        className="btn-primary flex-1 py-2.5 md:py-3 text-sm md:text-base"
                       >
                         Save Address
                       </button>
@@ -389,7 +414,7 @@ export function Checkout() {
                 <button
                   onClick={() => setCurrentStep('review')}
                   disabled={!canProceedToReview}
-                  className="w-full mt-4 md:mt-6 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="btn-primary w-full mt-4 md:mt-6 py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Continue to Review
                 </button>
@@ -413,7 +438,7 @@ export function Checkout() {
                     </p>
                     <button
                       onClick={() => setCurrentStep('address')}
-                      className="mt-2 text-blue-700 hover:underline"
+                      className="mt-2 text-teal-900 hover:underline"
                     >
                       Change Address
                     </button>
@@ -437,7 +462,7 @@ export function Checkout() {
                         <div className="flex-1">
                           <h4 className="text-lg">{product.name}</h4>
                           <p className="text-gray-600">Quantity: {item.quantity}</p>
-                          <p className="text-blue-700">₹{product.price} x {item.quantity}</p>
+                          <p className="text-teal-900">₹{product.price} x {item.quantity}</p>
                         </div>
                         <div className="text-lg">
                           ₹{product.price * item.quantity}
@@ -448,8 +473,8 @@ export function Checkout() {
                 </div>
 
                 {/* Estimated Delivery */}
-                <div className="p-4 bg-blue-50 rounded-lg mb-6">
-                  <p className="text-blue-800">
+                <div className="p-4 bg-teal-50 rounded-lg mb-6">
+                  <p className="text-teal-900">
                     Average delivery: <strong>15 - 30 minutes</strong>
                   </p>
                 </div>
@@ -457,7 +482,7 @@ export function Checkout() {
                 <button
                   onClick={() => setCurrentStep('payment')}
                   disabled={!canProceedToPayment}
-                  className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="btn-primary w-full py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Continue to Payment
                 </button>
@@ -473,13 +498,13 @@ export function Checkout() {
                   <div
                     onClick={() => setPaymentMethod('cod')}
                     className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'cod'
-                      ? 'border-blue-700 bg-blue-50'
+                      ? 'border-teal-900 bg-teal-50'
                       : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xl md:text-2xl">💵</span>
                         </div>
                         <div className="min-w-0">
@@ -488,7 +513,7 @@ export function Checkout() {
                         </div>
                       </div>
                       {paymentMethod === 'cod' && (
-                        <Check className="w-5 h-5 md:w-6 md:h-6 text-blue-700 flex-shrink-0" />
+                        <Check className="w-5 h-5 md:w-6 md:h-6 text-teal-900 flex-shrink-0" />
                       )}
                     </div>
                   </div>
@@ -496,13 +521,13 @@ export function Checkout() {
                   <div
                     onClick={() => setPaymentMethod('gpay')}
                     className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'gpay'
-                      ? 'border-blue-700 bg-blue-50'
+                      ? 'border-teal-900 bg-teal-50'
                       : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xl md:text-2xl">📱</span>
                         </div>
                         <div className="min-w-0">
@@ -511,7 +536,7 @@ export function Checkout() {
                         </div>
                       </div>
                       {paymentMethod === 'gpay' && (
-                        <Check className="w-5 h-5 md:w-6 md:h-6 text-blue-700 flex-shrink-0" />
+                        <Check className="w-5 h-5 md:w-6 md:h-6 text-teal-900 flex-shrink-0" />
                       )}
                     </div>
                   </div>
@@ -519,13 +544,13 @@ export function Checkout() {
                   <div
                     onClick={() => setPaymentMethod('razorpay')}
                     className={`p-4 md:p-6 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'razorpay'
-                      ? 'border-blue-700 bg-blue-50'
+                      ? 'border-teal-900 bg-teal-50'
                       : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-teal-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xl md:text-2xl">💳</span>
                         </div>
                         <div className="min-w-0">
@@ -534,7 +559,7 @@ export function Checkout() {
                         </div>
                       </div>
                       {paymentMethod === 'razorpay' && (
-                        <Check className="w-5 h-5 md:w-6 md:h-6 text-blue-700 flex-shrink-0" />
+                        <Check className="w-5 h-5 md:w-6 md:h-6 text-teal-900 flex-shrink-0" />
                       )}
                     </div>
                   </div>
@@ -543,7 +568,7 @@ export function Checkout() {
                   <button
                     onClick={handleRazorpayPayment}
                     disabled={isProcessing}
-                    className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="btn-primary w-full py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
                       <>
@@ -559,7 +584,7 @@ export function Checkout() {
                 )}
 
                 {paymentMethod === 'gpay' && (
-                  <div className="border border-green-200 rounded-lg p-4 bg-blue-50 mb-4">
+                  <div className="border border-green-200 rounded-lg p-4 bg-teal-50 mb-4">
                     <h3 className="text-base md:text-lg mb-2 text-green-800">Scan & Pay with Google Pay (UPI)</h3>
                     <img
                       src={gpayQrUrl}
@@ -570,12 +595,9 @@ export function Checkout() {
                       Scan this QR in GPay and complete payment of <strong>₹{total}</strong>.
                     </p>
                     <button
-                      onClick={() => {
-                        toast.success('Payment marked as completed. Placing order...');
-                        handlePlaceOrder('paid');
-                      }}
+                      onClick={() => handlePlaceOrder('paid')}
                       disabled={isProcessing}
-                      className="w-full mt-4 px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      className="btn-primary w-full mt-4 py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       I Have Paid - Auto Place Order
                     </button>
@@ -586,7 +608,7 @@ export function Checkout() {
                   <button
                     onClick={() => handlePlaceOrder('pending')}
                     disabled={!canPlaceOrder || isProcessing}
-                    className="w-full px-4 md:px-6 py-3 md:py-4 text-base md:text-lg bg-blue-700 text-white rounded-lg hover:bg-[#0B1F4D] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="btn-primary w-full py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
                       <>
@@ -618,7 +640,7 @@ export function Checkout() {
 
                 <div className="flex justify-between text-sm md:text-base">
                   <span className="text-gray-600">Delivery:</span>
-                  <span className={deliveryCharge === 0 ? 'text-blue-700' : ''}>
+                  <span className={deliveryCharge === 0 ? 'text-teal-900' : ''}>
                     {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
                   </span>
                 </div>
@@ -626,7 +648,7 @@ export function Checkout() {
                 <div className="border-t pt-3 md:pt-4">
                   <div className="flex justify-between text-xl md:text-2xl">
                     <span>Total:</span>
-                    <span className="text-blue-700">₹{total}</span>
+                    <span className="text-teal-900">₹{total}</span>
                   </div>
                 </div>
               </div>
@@ -640,6 +662,7 @@ export function Checkout() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
