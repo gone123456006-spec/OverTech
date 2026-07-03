@@ -5,7 +5,7 @@ import { getCart, getAddresses, saveAddress, createOrder, clearCart } from '../u
 import { getProductById } from '../data/products';
 import type { Address, CartItem } from '../utils/storage';
 import { toast } from 'sonner';
-import { apiUrl } from '../utils/api';
+import { apiPost } from '../utils/api';
 
 type CheckoutStep = 'address' | 'review' | 'payment';
 
@@ -157,30 +157,24 @@ export function Checkout() {
     setPaymentMethod('razorpay');
     setIsProcessing(true);
     try {
-      const createRes = await fetch(apiUrl('/api/payment/create-order'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          amount: total,
-          currency: 'INR',
-          cartSnapshot: cartItems,
-          customerMobile: selectedAddress.mobile,
-          customerName: selectedAddress.name,
-          customerAddress: {
-            house: selectedAddress.house,
-            city: selectedAddress.city,
-            state: selectedAddress.state,
-            pincode: selectedAddress.pincode
-          }
-        })
+      const orderData = await apiPost<{
+        orderId: string;
+        amount: number;
+        currency: string;
+        keyId: string;
+      }>('/api/payment/create-order', {
+        amount: total,
+        currency: 'INR',
+        cartSnapshot: cartItems,
+        customerMobile: selectedAddress.mobile,
+        customerName: selectedAddress.name,
+        customerAddress: {
+          house: selectedAddress.house,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          pincode: selectedAddress.pincode
+        }
       });
-
-      const orderData = await createRes.json();
-      if (!createRes.ok) {
-        throw new Error(orderData.message || 'Failed to create payment order');
-      }
 
       // Step 2: Open Razorpay SDK popup
       const options = {
@@ -197,22 +191,11 @@ export function Checkout() {
         theme: { color: '#134e4a' },
         handler: async (response: any) => {
           try {
-            const verifyRes = await fetch(apiUrl('/api/payment/verify'), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature
-              })
+            await apiPost('/api/payment/verify', {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
             });
-
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok) {
-              throw new Error(verifyData.message || 'Payment verification failed');
-            }
 
             // Step 4: Place local order
             handlePlaceOrder('paid', 'razorpay');
