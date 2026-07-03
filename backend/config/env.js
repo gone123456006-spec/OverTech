@@ -23,6 +23,18 @@ export function getMongoUri() {
     return normalizeMongoUri(process.env.MONGODB_URI);
 }
 
+/** Fix common copy-paste mistakes in Render / .env values before validation. */
+export function applyEnvNormalization() {
+    if (process.env.MONGODB_URI) {
+        const raw = process.env.MONGODB_URI;
+        const normalized = normalizeMongoUri(raw);
+        if (normalized && normalized !== raw.trim()) {
+            console.warn('⚠️  Normalized MONGODB_URI (removed accidental "MONGODB_URI=" prefix).');
+            process.env.MONGODB_URI = normalized;
+        }
+    }
+}
+
 export function isPlaceholder(value) {
     if (!value) return true;
     const uri = normalizeMongoUri(value);
@@ -38,12 +50,6 @@ export function getMongoUriErrors(uri) {
         return errors;
     }
 
-    if (rawHasDuplicateKey(uri)) {
-        errors.push(
-            'MONGODB_URI was pasted with a duplicate "MONGODB_URI=" prefix. In Render, set only the connection string value.'
-        );
-    }
-
     if (/@cluster\.mongodb\.net/i.test(normalized)) {
         errors.push(
             'MONGODB_URI uses placeholder host "cluster.mongodb.net". In Atlas → Connect → Drivers, copy the real hostname (e.g. cluster0.ab12cd.mongodb.net).'
@@ -55,10 +61,6 @@ export function getMongoUriErrors(uri) {
     }
 
     return errors;
-}
-
-function rawHasDuplicateKey(raw) {
-    return typeof raw === 'string' && raw.trim().startsWith('MONGODB_URI=');
 }
 
 function normalizeOrigin(origin) {
@@ -87,6 +89,8 @@ export function logProductionConfig() {
 }
 
 export function validateEnv() {
+    applyEnvNormalization();
+
     const isProduction = process.env.NODE_ENV === 'production';
     const errors = [];
 

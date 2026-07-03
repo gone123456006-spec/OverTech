@@ -13,7 +13,7 @@ Set these in **Render Dashboard → your service → Environment**:
 | `FRONTEND_URL` | `https://over-tech-git-main-prabhakarkumargupta901-6121s-projects.vercel.app` |
 
 **Important**
-- Paste only the connection string for `MONGODB_URI` — do **not** include `MONGODB_URI=` twice.
+- `MONGODB_URI` value can be the connection string only, or a full `.env` line — the server auto-strips a duplicate `MONGODB_URI=` prefix.
 - Hostname must be `cluster0.ctovf9q.mongodb.net` — **not** `cluster.mongodb.net`.
 - `FRONTEND_URL` can be comma-separated for multiple sites (no trailing slash).
 
