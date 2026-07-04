@@ -48,6 +48,10 @@ function validateOrderPayload(body) {
         return 'Invalid mobile number in address';
     }
 
+    if (!/^\d{6}$/.test(String(address.pincode).trim())) {
+        return 'Pincode must be exactly 6 digits';
+    }
+
     if (!['cod', 'razorpay'].includes(paymentMethod)) {
         return 'Invalid payment method';
     }
@@ -133,7 +137,7 @@ export const createShopOrder = async (req, res, next) => {
                 house: String(address.house).slice(0, 200),
                 city: String(address.city).slice(0, 80),
                 state: String(address.state).slice(0, 80),
-                pincode: String(address.pincode).slice(0, 10),
+                pincode: String(address.pincode).trim().slice(0, 6),
             },
             paymentMethod,
             paymentStatus,
