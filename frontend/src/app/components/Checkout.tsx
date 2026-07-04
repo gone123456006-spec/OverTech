@@ -60,9 +60,7 @@ export function Checkout() {
       const product = getProductById(item.productId);
       return total + (product?.price || 0) * item.quantity;
     }, 0);
-    const FREE_DELIVERY_THRESHOLD = 299;
-    const DELIVERY_CHARGE = 39;
-    const deliveryCharge = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE;
+    const deliveryCharge = 0;
     return { subtotal, deliveryCharge, total: subtotal + deliveryCharge };
   };
 
@@ -77,6 +75,11 @@ export function Checkout() {
 
     if (!/^[6-9]\d{9}$/.test(newAddress.mobile)) {
       toast.error('Enter a valid 10-digit Indian mobile number');
+      return;
+    }
+
+    if (!/^\d{6}$/.test(newAddress.pincode)) {
+      toast.error('Enter a valid 6-digit pincode');
       return;
     }
 
@@ -416,10 +419,12 @@ export function Checkout() {
                         className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                       <input
-                        type="text"
-                        placeholder="Pincode"
+                        type="tel"
+                        placeholder="Pincode (6 digits)"
                         value={newAddress.pincode}
-                        onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
+                        inputMode="numeric"
+                        maxLength={6}
+                        onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                         className="px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
@@ -499,13 +504,6 @@ export function Checkout() {
                       </div>
                     );
                   })}
-                </div>
-
-                {/* Estimated Delivery */}
-                <div className="p-4 bg-teal-50 rounded-lg mb-6">
-                  <p className="text-teal-900">
-                    Average delivery: <strong>15 - 30 minutes</strong>
-                  </p>
                 </div>
 
                 <button
@@ -625,9 +623,7 @@ export function Checkout() {
 
                 <div className="flex justify-between text-sm md:text-base">
                   <span className="text-gray-600">Delivery:</span>
-                  <span className={deliveryCharge === 0 ? 'text-teal-900' : ''}>
-                    {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
-                  </span>
+                  <span className="text-teal-900">₹0</span>
                 </div>
 
                 <div className="border-t pt-3 md:pt-4">

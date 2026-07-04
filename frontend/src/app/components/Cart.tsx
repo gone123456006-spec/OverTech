@@ -43,9 +43,7 @@ export function Cart() {
   };
 
   const subtotal = calculateSubtotal();
-  const FREE_DELIVERY_THRESHOLD = 299;
-  const DELIVERY_CHARGE = 39;
-  const deliveryCharge = subtotal > 0 ? (subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE) : 0;
+  const deliveryCharge = 0;
   const total = subtotal + deliveryCharge;
 
   if (cartItems.length === 0) {
@@ -153,16 +151,8 @@ export function Cart() {
 
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">Delivery Charge:</span>
-                  <span className={deliveryCharge === 0 ? 'text-teal-900' : ''}>
-                    {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
-                  </span>
+                  <span className="text-teal-900">₹0</span>
                 </div>
-
-                {subtotal < FREE_DELIVERY_THRESHOLD && subtotal > 0 && (
-                  <p className="text-xs md:text-sm text-gray-600 bg-slate-50 p-2 md:p-3 rounded-lg border border-teal-200">
-                    Add ₹{FREE_DELIVERY_THRESHOLD - subtotal} more to get FREE delivery!
-                  </p>
-                )}
 
                 <div className="border-t pt-3 md:pt-4">
                   <div className="flex justify-between text-xl md:text-2xl">
