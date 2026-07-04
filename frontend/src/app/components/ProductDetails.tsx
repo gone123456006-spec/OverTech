@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { getProductById } from '../data/products';
 import { addToCart } from '../utils/storage';
 import { toast } from 'sonner';
+import { useContentSync } from '../hooks/useContentSync';
 
 export function ProductDetails() {
+  const contentTick = useContentSync();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const product = getProductById(id!);
+  const product = useMemo(() => getProductById(id!), [contentTick, id]);
   const [quantity, setQuantity] = useState(1);
 
   if (!product) {

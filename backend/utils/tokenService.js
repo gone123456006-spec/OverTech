@@ -16,6 +16,18 @@ export const generateToken = (userId, mobile) => {
 };
 
 /**
+ * Generate JWT token for admin session
+ * @returns {string} JWT token
+ */
+export const generateAdminToken = () => {
+    return jwt.sign(
+        { role: 'admin' },
+        JWT_CONFIG.SECRET,
+        { expiresIn: '24h' }
+    );
+};
+
+/**
  * Verify JWT token
  * @param {string} token - JWT token to verify
  * @returns {object} Decoded token payload

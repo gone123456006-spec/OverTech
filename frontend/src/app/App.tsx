@@ -14,6 +14,7 @@ import { CustomerOrders } from './components/CustomerOrders';
 
 import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { ProductSearchBar } from './components/ProductSearchBar';
 
 function AppRoutes() {
   const location = useLocation();
@@ -22,6 +23,7 @@ function AppRoutes() {
   return (
     <div className={`min-h-screen relative ${isAdminPanel ? 'bg-slate-100' : 'bg-slate-50 pb-16 md:pb-0'}`}>
       {!isAdminPanel && <Navbar />}
+      {!isAdminPanel && <ProductSearchBar />}
       <main className="relative z-0">
         <Routes>
           <Route path="/" element={<HomePage />} />

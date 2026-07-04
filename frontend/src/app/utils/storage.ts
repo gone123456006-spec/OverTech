@@ -1,3 +1,5 @@
+import { applyStorefrontCache, getStorefrontCache, saveStorefront } from './storefront';
+
 export interface CartItem {
   productId: string;
   quantity: number;
@@ -30,6 +32,8 @@ export interface Order {
   deliveryAgentName?: string;
   deliveryAgentPhone?: string;
   total: number;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
 }
 
 export interface UserProfile {
@@ -45,6 +49,27 @@ const ORDERS_KEY = 'ecommerce_orders';
 const PROFILE_KEY = 'ecommerce_profile';
 const BANNERS_KEY = 'admin_banners';
 const PRODUCT_OVERRIDES_KEY = 'admin_product_overrides';
+const CUSTOM_PRODUCTS_KEY = 'admin_custom_products';
+const CUSTOM_PRODUCTS_EVENT = 'customProductsUpdated';
+
+function publishStorefront(partial?: {
+  banners?: AdminBanners;
+  productOverrides?: ProductOverride[];
+  customProducts?: CustomProduct[];
+  invoiceSettings?: InvoiceSettings;
+}) {
+  const current = getStorefrontCache();
+  applyStorefrontCache({
+    banners: partial?.banners ?? current.banners ?? {},
+    productOverrides: partial?.productOverrides ?? current.productOverrides ?? [],
+    customProducts: partial?.customProducts ?? current.customProducts ?? [],
+    invoiceSettings: partial?.invoiceSettings ?? current.invoiceSettings,
+    updatedAt: new Date().toISOString(),
+  });
+  saveStorefront(partial ?? current).catch(() => {
+    /* offline — local cache still updated */
+  });
+}
 
 // Banner types
 export interface AdminBanners {
@@ -55,6 +80,63 @@ export interface AdminBanners {
   categoryFood?: string;
 }
 
+/** Default images shown on the storefront when no custom banner is saved. */
+export const DEFAULT_BANNER_IMAGES: Partial<Record<keyof AdminBanners, string>> = {
+  home: '/assets/images/banner-grains-pulses.png',
+};
+
+const CATEGORY_BANNER_KEYS: Record<string, keyof AdminBanners> = {
+  tech: 'categoryClothes',
+  clothes: 'categoryClothes',
+  jewellery: 'categoryJewellery',
+  food: 'categoryFood',
+};
+
+export function getEffectiveBanner(key: keyof AdminBanners): string | undefined {
+  const custom = getBanners()[key];
+  if (custom) return custom;
+  return DEFAULT_BANNER_IMAGES[key];
+}
+
+export function getCategoryPageBanner(categorySlug: string): string | undefined {
+  const key = CATEGORY_BANNER_KEYS[categorySlug.toLowerCase()];
+  if (!key) return undefined;
+  return getBanners()[key];
+}
+
+export interface InvoiceSettings {
+  businessName: string;
+  businessAddress?: string;
+  businessPhone?: string;
+  businessEmail?: string;
+  termsAndConditions: string;
+}
+
+export const DEFAULT_INVOICE_SETTINGS: InvoiceSettings = {
+  businessName: 'OverTech',
+  businessAddress: 'India',
+  businessPhone: '',
+  businessEmail: '',
+  termsAndConditions:
+    '1. All prices are inclusive of applicable taxes unless stated otherwise.\n' +
+    '2. Goods once sold will not be taken back or exchanged except in case of defective items.\n' +
+    '3. Delivery timelines are estimates and may vary based on location.\n' +
+    '4. For support, contact us with your order ID and registered mobile number.',
+};
+
+export const BANNER_SLOT_CONFIG: {
+  key: keyof AdminBanners;
+  label: string;
+  hint: string;
+  defaultPreview?: string;
+}[] = [
+  { key: 'home', label: 'Homepage Banner', hint: 'Top of the homepage', defaultPreview: DEFAULT_BANNER_IMAGES.home },
+  { key: 'cart', label: 'Cart Banner', hint: 'Top of the cart page' },
+  { key: 'categoryClothes', label: 'Tech Category', hint: 'Tech category page' },
+  { key: 'categoryJewellery', label: 'Jewellery Category', hint: 'Jewellery category page' },
+  { key: 'categoryFood', label: 'Food Category', hint: 'Food category page' },
+];
+
 export interface ProductOverride {
   id: string;
   name?: string;
@@ -63,34 +145,74 @@ export interface ProductOverride {
   image?: string;
   description?: string;
   banner?: string;
+  category?: string;
+  rating?: number;
+}
+
+export interface CustomProduct {
+  id: string;
+  name: string;
+  price: number;
+  rating: number;
+  category: string;
+  image: string;
+  description: string;
+  stock: number;
 }
 
 // Banner Operations
-export const getBanners = (): AdminBanners => {
-  const b = localStorage.getItem(BANNERS_KEY);
-  return b ? JSON.parse(b) : {};
-};
+export const getBanners = (): AdminBanners => getStorefrontCache().banners || {};
 
 export const saveBanners = (banners: AdminBanners): void => {
-  localStorage.setItem(BANNERS_KEY, JSON.stringify(banners));
+  publishStorefront({ banners });
+};
+
+export const getInvoiceSettings = (): InvoiceSettings => {
+  const saved = getStorefrontCache().invoiceSettings;
+  return { ...DEFAULT_INVOICE_SETTINGS, ...saved };
+};
+
+export const saveInvoiceSettings = (settings: InvoiceSettings): void => {
+  publishStorefront({ invoiceSettings: settings });
 };
 
 // Product Override Operations
-export const getProductOverrides = (): ProductOverride[] => {
-  const o = localStorage.getItem(PRODUCT_OVERRIDES_KEY);
-  return o ? JSON.parse(o) : [];
-};
+export const getProductOverrides = (): ProductOverride[] => getStorefrontCache().productOverrides || [];
 
 export const saveProductOverride = (override: ProductOverride): void => {
-  const overrides = getProductOverrides();
+  const overrides = [...getProductOverrides()];
   const idx = overrides.findIndex(o => o.id === override.id);
   if (idx >= 0) {
     overrides[idx] = { ...overrides[idx], ...override };
   } else {
     overrides.push(override);
   }
-  localStorage.setItem(PRODUCT_OVERRIDES_KEY, JSON.stringify(overrides));
+  publishStorefront({ productOverrides: overrides });
 };
+
+export const getCustomProducts = (): CustomProduct[] => getStorefrontCache().customProducts || [];
+
+export const saveCustomProduct = (product: CustomProduct): void => {
+  const list = [...getCustomProducts()];
+  const idx = list.findIndex((p) => p.id === product.id);
+  if (idx >= 0) {
+    list[idx] = product;
+  } else {
+    list.push(product);
+  }
+  publishStorefront({ customProducts: list });
+  window.dispatchEvent(new Event(CUSTOM_PRODUCTS_EVENT));
+};
+
+export const deleteCustomProduct = (id: string): void => {
+  const list = getCustomProducts().filter((p) => p.id !== id);
+  const overrides = getProductOverrides().filter((o) => o.id !== id);
+  publishStorefront({ customProducts: list, productOverrides: overrides });
+  window.dispatchEvent(new Event(CUSTOM_PRODUCTS_EVENT));
+};
+
+export const newCustomProductId = (): string =>
+  `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
 // Cart Operations
 export const getCart = (): CartItem[] => {
@@ -220,6 +342,19 @@ export const createOrder = (
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
   window.dispatchEvent(new Event('ordersUpdated'));
   return newOrder;
+};
+
+/** Persist an order returned from the backend (for checkout + admin sync). */
+export const saveOrderFromServer = (order: Order): void => {
+  const orders = getOrders();
+  const idx = orders.findIndex((o) => o.id === order.id);
+  if (idx >= 0) {
+    orders[idx] = order;
+  } else {
+    orders.unshift(order);
+  }
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  window.dispatchEvent(new Event('ordersUpdated'));
 };
 
 export const getOrderById = (orderId: string): Order | undefined => {

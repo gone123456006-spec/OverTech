@@ -19,7 +19,18 @@ export function Navbar() {
     };
   }, []);
 
-  useEffect(() => { setIsMobileMenuOpen(false); }, [location]);
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -27,7 +38,7 @@ export function Navbar() {
     { path: '/', label: 'Home', icon: Home },
     { path: '/orders', label: 'Orders', icon: Package },
     { path: '/cart', label: 'Cart', icon: ShoppingCart, badge: cartCount },
-    { path: '/account', label: 'Account', icon: User }
+    { path: '/account', label: 'Account', icon: User },
   ];
 
   return (
@@ -49,7 +60,9 @@ export function Navbar() {
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <a key={link.path} href={link.path}
+                  <a
+                    key={link.path}
+                    href={link.path}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors relative no-underline font-medium
                       ${isActive(link.path) ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}
                   >
@@ -65,41 +78,71 @@ export function Navbar() {
               })}
             </div>
 
-            {/* Mobile menu toggle */}
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            {/* Mobile menu toggle — three lines */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
               className="md:hidden p-3 -m-1 rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation text-slate-800"
-              aria-label="Toggle menu"
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white">
-            <div className="px-4 py-4 space-y-1">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <a key={link.path} href={link.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors relative no-underline font-medium
-                      ${isActive(link.path) ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'}`}
-                  >
-                    <Icon className="w-6 h-6" />
-                    <span className="text-base">{link.label}</span>
-                    {link.badge && link.badge > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-sm rounded-full w-6 h-6 flex items-center justify-center">
-                        {link.badge > 9 ? '9+' : link.badge}
-                      </span>
-                    )}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </nav>
+
+      {/* Mobile drawer backdrop */}
+      <div
+        className={`fixed inset-0 z-[60] bg-black/45 transition-opacity duration-300 md:hidden ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden={!isMobileMenuOpen}
+      />
+
+      {/* Mobile drawer — slides in from left, half screen */}
+      <aside
+        className={`fixed top-0 left-0 z-[70] h-full w-1/2 min-w-[220px] max-w-[320px] bg-white shadow-2xl border-r border-slate-200 flex flex-col transform transition-transform duration-300 ease-out md:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+        }`}
+        aria-hidden={!isMobileMenuOpen}
+      >
+        <div className="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0">
+          <span className="text-sm font-semibold text-slate-900">Menu</span>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 -mr-1 rounded-lg hover:bg-slate-100 text-slate-700"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <a
+                key={link.path}
+                href={link.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors relative no-underline font-medium
+                  ${isActive(link.path) ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'}`}
+              >
+                <Icon className="w-6 h-6 shrink-0" />
+                <span className="text-base">{link.label}</span>
+                {link.badge && link.badge > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-sm rounded-full min-w-6 h-6 px-1.5 flex items-center justify-center">
+                    {link.badge > 9 ? '9+' : link.badge}
+                  </span>
+                )}
+              </a>
+            );
+          })}
+        </div>
+      </aside>
     </>
   );
 }

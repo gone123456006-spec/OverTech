@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { getCart, updateCartItemQuantity, removeFromCart, getBanners } from '../utils/storage';
 import { getProductById } from '../data/products';
 import type { CartItem } from '../utils/storage';
 import { toast } from 'sonner';
+import { useContentSync } from '../hooks/useContentSync';
 
 export function Cart() {
+  const contentTick = useContentSync();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
+  const cartBanner = useMemo(() => getBanners().cart, [contentTick]);
 
   useEffect(() => {
     loadCart();
@@ -66,10 +69,10 @@ export function Cart() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Admin-set cart banner */}
-      {getBanners().cart && (
+      {cartBanner && (
         <div className="w-full max-w-7xl mx-auto px-4 pt-4">
           <div className="rounded-xl overflow-hidden shadow-md">
-            <img src={getBanners().cart} alt="Cart Banner" className="w-full max-h-40 object-cover" />
+            <img src={cartBanner} alt="Cart Banner" className="w-full max-h-40 object-cover" />
           </div>
         </div>
       )}

@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "id": "cat-tech",
+      "slug": "tech",
+      "name": "Tech",
+      "description": "Latest gadgets & devices",
+      "image": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 0,
+      "active": true
+    },
+    {
+      "id": "cat-jewellery",
+      "slug": "jewellery",
+      "name": "Jewellery",
+      "description": "Elegant accessories",
+      "image": "/assets/images/jewellery-software-hero.png",
+      "sortOrder": 1,
+      "active": true
+    },
+    {
+      "id": "cat-food",
+      "slug": "food",
+      "name": "Food",
+      "description": "Fresh & organic",
+      "image": "https://images.pexels.com/photos/264188/pexels-photo-264188.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "sortOrder": 2,
+      "active": true
+    }
+  ],
+  "updatedAt": "2026-07-04T00:00:00.000Z"
+}

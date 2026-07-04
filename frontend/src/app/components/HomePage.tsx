@@ -1,49 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, Settings, Monitor, MessageSquare, PlusSquare, Coffee, Briefcase, CreditCard, Printer, FileText, Shield, TrendingUp, PlayCircle, Smartphone, Repeat, Star, ShoppingCart } from 'lucide-react';
-import { getBanners, addToCart } from '../utils/storage';
-import { products } from '../data/products';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { addToCart, getEffectiveBanner } from '../utils/storage';
+import { getAllProducts, getProductsByCategory } from '../data/products';
+import { useContentSync } from '../hooks/useContentSync';
 import { toast } from 'sonner';
 import { OrderConfirmedModal, type OrderConfirmedState } from './OrderConfirmedModal';
 import { SpecialOfferCard } from './SpecialOfferCard';
 import { SpecialOfferTag } from './SpecialOfferTag';
+import { ProductCard } from './ProductCard';
+import { JewellerySoftwareSection } from './JewellerySoftwareSection';
+import { BusinessGrowthSection } from './BusinessGrowthSection';
+import { SmartSolutionsSection } from './SmartSolutionsSection';
+import { ManagingDirectorSection } from './ManagingDirectorSection';
 import {
   SPECIAL_OFFERS_CACHE_KEY,
-  SPECIAL_OFFERS_POLL_MS,
   SPECIAL_OFFERS_UPDATED_EVENT,
   fetchSpecialOffers,
   getCachedSpecialOffers,
   sortActiveOffers,
   type SpecialOffer,
 } from '../utils/specialOffers';
-
-const categories = [
-  {
-    id: 'tech',
-    name: 'Tech',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    description: 'Latest gadgets & devices'
-  },
-  {
-    id: 'jewellery',
-    name: 'Jewellery',
-    image: 'https://images.unsplash.com/photo-1718871186381-6d59524a64f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqZXdlbHJ5JTIwZ29sZCUyMGFjY2Vzc29yaWVzfGVufDF8fHx8MTc3MDM5NDAzN3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'Elegant accessories'
-  },
-  {
-    id: 'food',
-    name: 'Food',
-    image: 'https://images.unsplash.com/photo-1610636996379-4d184e2ef20a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGZvb2QlMjBncm9jZXJpZXN8ZW58MXx8fHwxNzcwMzk0MDM4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    description: 'Fresh & organic'
-  }
-];
+import {
+  CATEGORY_CARDS_CACHE_KEY,
+  CATEGORY_CARDS_UPDATED_EVENT,
+  fetchCategoryCards,
+  getCachedCategoryCards,
+  getDefaultCategoryImage,
+  handleCategoryImageError,
+  sortActiveCategories,
+  type CategoryCard,
+} from '../utils/categoryCards';
 
 export function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const contentTick = useContentSync();
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const banners = getBanners();
 
   const orderConfirmed = (location.state as { orderConfirmed?: OrderConfirmedState } | null)?.orderConfirmed;
   const [showOrderConfirmed, setShowOrderConfirmed] = useState(!!orderConfirmed);
@@ -52,6 +45,9 @@ export function HomePage() {
   );
   const [offerTags, setOfferTags] = useState<SpecialOffer[]>(() =>
     sortActiveOffers(getCachedSpecialOffers()).filter((o) => o.kind === 'tag')
+  );
+  const [categoryCards, setCategoryCards] = useState<CategoryCard[]>(() =>
+    sortActiveCategories(getCachedCategoryCards())
   );
 
   const loadSpecialOffers = useCallback(() => {
@@ -66,6 +62,12 @@ export function HomePage() {
       .catch(() => applyOffers(getCachedSpecialOffers()));
   }, []);
 
+  const loadCategoryCards = useCallback(() => {
+    fetchCategoryCards()
+      .then((data) => setCategoryCards(sortActiveCategories(data.categories)))
+      .catch(() => setCategoryCards(sortActiveCategories(getCachedCategoryCards())));
+  }, []);
+
   useEffect(() => {
     if (orderConfirmed) {
       setShowOrderConfirmed(true);
@@ -74,38 +76,51 @@ export function HomePage() {
 
   useEffect(() => {
     loadSpecialOffers();
-    const interval = window.setInterval(loadSpecialOffers, SPECIAL_OFFERS_POLL_MS);
     const onUpdated = () => loadSpecialOffers();
     const onStorage = (e: StorageEvent) => {
       if (e.key === SPECIAL_OFFERS_CACHE_KEY) loadSpecialOffers();
     };
-
     window.addEventListener(SPECIAL_OFFERS_UPDATED_EVENT, onUpdated);
     window.addEventListener('storage', onStorage);
-
     return () => {
-      window.clearInterval(interval);
       window.removeEventListener(SPECIAL_OFFERS_UPDATED_EVENT, onUpdated);
       window.removeEventListener('storage', onStorage);
     };
-  }, [loadSpecialOffers]);
+  }, [loadSpecialOffers, contentTick]);
 
-  const techProducts = products.filter(p => p.category === 'tech').slice(0, 8);
+  useEffect(() => {
+    loadCategoryCards();
+    const onUpdated = () => loadCategoryCards();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === CATEGORY_CARDS_CACHE_KEY) loadCategoryCards();
+    };
+    window.addEventListener(CATEGORY_CARDS_UPDATED_EVENT, onUpdated);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener(CATEGORY_CARDS_UPDATED_EVENT, onUpdated);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [loadCategoryCards, contentTick]);
 
-  const handleAddToCart = (e: React.MouseEvent, productId: string, productName: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const techProducts = useMemo(
+    () => getAllProducts().filter(p => p.category === 'tech').slice(0, 8),
+    [contentTick]
+  );
+
+  const handleAddToCart = (productId: string, productName: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     addToCart(productId, 1);
     toast.success(`${productName} added to cart!`);
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
-  const heroBanners = [
-    banners.home || '/assets/images/banner-grains-pulses.png',
+  const heroBanners = useMemo(() => [
+    getEffectiveBanner('home') || '/assets/images/banner-grains-pulses.png',
     'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     'https://images.unsplash.com/photo-1483985988355-763728e1935b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
     'https://images.unsplash.com/photo-1607082349566-187342175e2f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080'
-  ];
+  ], [contentTick]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -113,13 +128,6 @@ export function HomePage() {
     }, 4000);
     return () => clearInterval(timer);
   }, [heroBanners.length]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   const nextBanner = () => {
     setCurrentBannerIndex((prev) => (prev + 1) % heroBanners.length);
@@ -131,31 +139,6 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Search Bar */}
-      <div className="bg-slate-50 py-3 px-3 sm:py-4 sm:px-4">
-        <div className="max-w-xl mx-auto">
-          <form onSubmit={handleSearch}>
-            <div className="relative flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
-              <input
-                type="search"
-                inputMode="search"
-                autoComplete="off"
-                placeholder="Search for products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 bg-transparent text-gray-900 placeholder-gray-500 text-sm sm:text-base outline-none border-0 focus:ring-0"
-              />
-              <button
-                type="submit"
-                className="m-1 flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full btn-icon touch-manipulation"
-              >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
       {/* Banner A - Hero Banner */}
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-6 relative z-0">
         <div className="relative rounded-lg overflow-hidden border border-slate-200 h-[160px] sm:h-[240px] md:h-[300px]">
@@ -215,28 +198,30 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8">
-          {categories.map((category) => (
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 md:gap-5 lg:gap-6 max-w-4xl mx-auto">
+          {categoryCards.map((category) => (
             <Link
               key={category.id}
-              to={`/category/${category.id}`}
-              className="relative h-28 sm:h-40 md:h-56 rounded-lg overflow-hidden border border-slate-200"
+              to={`/category/${category.slug}`}
+              className="group relative block h-24 sm:h-36 md:h-48 lg:h-52 w-full rounded-lg sm:rounded-xl overflow-hidden border border-slate-200 transition-shadow hover:shadow-md"
             >
               <img
-                src={category.image}
+                src={category.image || getDefaultCategoryImage(category.slug)}
                 alt={category.name}
-                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                onError={(e) => handleCategoryImageError(e, category.slug)}
               />
-              <div className="absolute inset-0 bg-black/50 flex flex-col justify-end p-2 sm:p-4 md:p-6">
-                <h3 className="text-sm sm:text-xl md:text-2xl text-white mb-0.5 sm:mb-1 font-medium">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent flex flex-col justify-end p-1.5 sm:p-3 md:p-4">
+                <h3 className="text-[10px] sm:text-base md:text-lg text-white font-medium leading-tight">
                   {category.name}
                 </h3>
-                <p className="text-white/90 text-xs sm:text-sm mb-1 sm:mb-2 hidden sm:block">
+                <p className="text-white/85 text-[8px] sm:text-xs md:text-sm mb-0.5 sm:mb-1 hidden sm:block line-clamp-1">
                   {category.description}
                 </p>
-                <div className="flex items-center text-white text-xs sm:text-sm">
+                <div className="flex items-center text-white/90 text-[8px] sm:text-xs md:text-sm">
                   <span>Shop Now</span>
-                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                  <ChevronRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ml-0.5 transition-transform group-hover:translate-x-0.5" />
                 </div>
               </div>
             </Link>
@@ -253,70 +238,13 @@ export function HomePage() {
           <p className="text-sm sm:text-base text-slate-600">Browse our latest technology products</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {techProducts.map((product) => (
-            <div
+            <ProductCard
               key={product.id}
-              className="bg-white rounded-lg overflow-hidden border border-slate-200 flex flex-col"
-            >
-              <Link to={`/product/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-slate-50">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  {product.stock < 10 && (
-                    <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-600 text-white rounded">
-                      Low Stock
-                    </span>
-                  )}
-                  {product.rating > 4.5 && (
-                    <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-700 text-white rounded">
-                      Best Seller
-                    </span>
-                  )}
-                </div>
-              </Link>
-
-              <div className="p-3 sm:p-4 flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-medium text-slate-500 uppercase">
-                    Technology
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-500">
-                    <Star className="w-3 h-3 fill-slate-400 stroke-slate-400" />
-                    <span className="text-xs text-slate-600">{product.rating}</span>
-                  </div>
-                </div>
-
-                <Link to={`/product/${product.id}`} className="block mb-3">
-                  <h3 className="text-sm sm:text-base font-medium text-slate-900 line-clamp-2 leading-snug">
-                    {product.name}
-                  </h3>
-                </Link>
-
-                <div className="mt-auto pt-2 flex items-center justify-between border-t border-slate-100">
-                  <div className="flex flex-col">
-                    <span className="text-base sm:text-lg font-semibold text-slate-900">
-                      ₹{product.price.toLocaleString()}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      Incl. all taxes
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={(e) => handleAddToCart(e, product.id, product.name)}
-                    className="w-10 h-10 btn-icon"
-                    aria-label="Add to cart"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
           ))}
         </div>
 
@@ -327,144 +255,14 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Our Services Section - Jewellery Software */}
-      <div className="py-16 sm:py-24 bg-white border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-6">
-              Hover Technology Pvt Ltd
-            </h2>
+      <JewellerySoftwareSection />
 
-            <div className="mt-6 md:mt-8">
-              <span className="inline-block py-2 px-6 rounded-full btn-primary text-base md:text-lg">
-                Special Offer: 1 Month Free Demo (Limited Time)
-              </span>
-            </div>
-          </div>
+      <BusinessGrowthSection />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch bg-white rounded-lg border border-slate-200 overflow-hidden">
-            <div className="col-span-1 lg:col-span-7 p-8 md:p-12 flex flex-col justify-center">
-              <h3 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-8">
-                Comprehensive Features
-              </h3>
-
-              <ul className="space-y-4 md:space-y-5">
-                {[
-                  'GST Billing & Tax Compliance',
-                  'Stock (Manual + Barcode + RFID)',
-                  'Karigar & Badhaki (Gold Loan) Management',
-                  'Samridhi Scheme + Advance Management',
-                  'Purchase, Sales & Customer Ledger',
-                  'Bulk SMS + WhatsApp API',
-                  'Cloud Backup & Staff Commission'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                    <span className="text-slate-600 text-base md:text-lg">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-10 pt-6 border-t border-slate-100">
-                <p className="text-center md:text-left font-medium text-lg md:text-xl text-slate-800">
-                  Best for Every Jewellery Shop Owner
-                </p>
-              </div>
-            </div>
-
-            <div className="col-span-1 lg:col-span-5 bg-teal-950 flex flex-col justify-center min-h-[300px] md:min-h-[400px]">
-              <div className="w-full h-full overflow-hidden aspect-video lg:aspect-auto">
-                <iframe
-                  className="w-full h-full border-0"
-                  src="https://www.youtube.com/embed/OKnNHZrRdDE?si=Wqpnt2JrH4mny5s6"
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Business Growth Partner Banner */}
-      <section className="border-t border-slate-200">
-        <div className="bg-teal-950 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 text-center">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
-              Hover Technology
-            </h2>
-            <p className="text-base sm:text-lg md:text-2xl text-teal-100/90 font-medium">
-              Your Business Growth Partner
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-slate-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 text-center">
-            <p className="text-base md:text-lg text-slate-700 mb-4 leading-relaxed">
-              Welcome to Hover Technology. Are you looking to scale your business with advanced{' '}
-              <span className="font-semibold text-teal-900">Jewellery Software</span> or precision{' '}
-              <span className="font-semibold text-teal-900">Jewellery Tags</span>?
-            </p>
-            <p className="text-base md:text-lg text-slate-700 leading-relaxed">
-              Do you need professional{' '}
-              <span className="font-semibold text-teal-900">Digital Branding</span>, targeted{' '}
-              <span className="font-semibold text-teal-900">WhatsApp Marketing</span>, or a{' '}
-              <span className="font-semibold text-teal-900">Custom E-Commerce Application</span>?
-            </p>
-
-            <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl px-4 py-4 md:px-6 md:py-5 text-left shadow-sm">
-              <div className="flex items-start sm:items-center gap-3 text-sm md:text-base text-slate-700">
-                <div className="w-9 h-9 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
-                  <Settings className="w-4 h-4 text-teal-900" />
-                </div>
-                <span>We provide end-to-end solutions to accelerate your business growth.</span>
-              </div>
-              <a
-                href="https://wa.me/917991163225"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary-sm shrink-0 self-start sm:self-center px-5"
-              >
-                Chat on WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <SmartSolutionsSection />
 
       <div className="py-12 md:py-16 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-4 gap-3 sm:gap-4">
-            {[
-              { icon: <Monitor className="w-7 h-7 text-slate-600" />, name: 'CCTV Camera Installation' },
-              { icon: <MessageSquare className="w-7 h-7 text-slate-600" />, name: 'Bulk SMS / OTP / Jio-DLT' },
-              { icon: <PlusSquare className="w-7 h-7 text-slate-600" />, name: 'Medicine Billing Software' },
-              { icon: <Coffee className="w-7 h-7 text-slate-600" />, name: 'Restaurant Billing Software' },
-              { icon: <Briefcase className="w-7 h-7 text-slate-600" />, name: 'Jewellery Wholesale Software' },
-              { icon: <CreditCard className="w-7 h-7 text-slate-600" />, name: 'Money Counting Machine' },
-              { icon: <Printer className="w-7 h-7 text-slate-600" />, name: 'Barcode / Thermal Printer' },
-              { icon: <FileText className="w-7 h-7 text-slate-600" />, name: 'POS Roll / Ribbon / Labels' },
-              { icon: <Search className="w-7 h-7 text-slate-600" />, name: 'Barcode Scanner / RFID Tags' },
-              { icon: <Shield className="w-7 h-7 text-slate-600" />, name: 'Quick Heal Antivirus Protection' },
-              { icon: <TrendingUp className="w-7 h-7 text-slate-600" />, name: 'Digital Marketing Services' },
-              { icon: <PlayCircle className="w-7 h-7 text-slate-600" />, name: 'YouTube Promotion & Strategy' },
-              { icon: <Smartphone className="w-7 h-7 text-slate-600" />, name: 'Custom Mobile Apps' },
-              { icon: <Repeat className="w-7 h-7 text-slate-600" />, name: 'Rupees to Gold Converter Tool' },
-            ].map((srv, idx) => (
-              <div key={idx} className="bg-white p-2 sm:p-4 rounded-lg border border-slate-200 flex flex-col items-center gap-2 sm:gap-3">
-                <div className="flex items-center justify-center p-2 sm:p-3 bg-slate-50 rounded-md border border-slate-100">
-                  {srv.icon}
-                </div>
-                <h4 className="text-slate-700 font-medium leading-tight text-[10px] sm:text-sm text-center">{srv.name}</h4>
-              </div>
-            ))}
-          </div>
-
           {/* Special Offers Section */}
           <div className="mt-16 sm:mt-24 mb-16 sm:mb-20">
             <div className="text-center mb-8 sm:mb-10">
@@ -479,9 +277,9 @@ export function HomePage() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl mx-auto w-full">
-                {offerTags.map((tag) => (
-                  <SpecialOfferTag key={tag.id} offer={tag} />
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-4 md:gap-5 max-w-5xl mx-auto w-full">
+                {offerTags.map((tag, index) => (
+                  <SpecialOfferTag key={tag.id} offer={tag} index={index} />
                 ))}
               </div>
             </div>
@@ -507,26 +305,7 @@ export function HomePage() {
       {/* About Us & Contact Section */}
       <div className="py-16 sm:py-24 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-16">
-            <div>
-              <h3 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">We Are OverTech</h3>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-                Founded with a passion for excellence, OverTech aims to revolutionize the shopping experience. We bridge the gap between premium quality and everyday affordability.
-              </p>
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                Our curated selections from top global brands ensure that you have access to the finest products, right at your fingertips. Join millions of satisfied customers today.
-              </p>
-            </div>
-            <div className="flex justify-center lg:justify-end">
-              <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-[400px] md:h-[400px] rounded-lg overflow-hidden border border-slate-200">
-                  <img
-                    src="/assets/images/iamgeeee11.jpeg"
-                    alt="Director"
-                    className="w-full h-full object-cover object-center"
-                  />
-              </div>
-            </div>
-          </div>
+          <ManagingDirectorSection />
 
           {/* Contact & Address Information (Matching Image) */}
           <div className="mt-20 pt-16 border-t border-slate-100 flex flex-col items-center">

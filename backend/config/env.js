@@ -118,6 +118,12 @@ export function validateEnv() {
         if (getAllowedOrigins().length === 0) {
             errors.push('FRONTEND_URL must be set (your deployed frontend URL, comma-separated for multiple)');
         }
+        if (!process.env.ADMIN_PASSWORD) {
+            errors.push('ADMIN_PASSWORD must be set for admin panel access');
+        }
+        if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_in_production') {
+            errors.push('JWT_SECRET must be set to a strong random value');
+        }
     }
 
     if (errors.length > 0) {

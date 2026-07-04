@@ -1,107 +1,80 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { Star, ShoppingCart, Search as SearchIcon } from 'lucide-react';
+import { useMemo } from 'react';
+import { Search as SearchIcon } from 'lucide-react';
 import { searchProducts } from '../data/products';
 import { addToCart } from '../utils/storage';
 import { toast } from 'sonner';
+import { useContentSync } from '../hooks/useContentSync';
+import { ProductCard } from './ProductCard';
 
 export function SearchResults() {
+  const contentTick = useContentSync();
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q') || '';
-  const results = query ? searchProducts(query) : [];
+  const query = searchParams.get('q')?.trim() || '';
+  const results = useMemo(
+    () => (query ? searchProducts(query) : []),
+    [contentTick, query]
+  );
 
-  const handleAddToCart = (productId: string, productName: string) => {
+  const handleAddToCart = (productId: string, productName: string, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     addToCart(productId, 1);
     toast.success(`${productName} added to cart!`);
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
+  if (!query) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+          <SearchIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h1 className="text-2xl font-semibold text-slate-900 mb-2">Search for products</h1>
+          <p className="text-slate-600 mb-6">Type a product name in the search bar above and press search.</p>
+          <Link to="/" className="btn-primary px-6 py-2.5">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
-        {/* Search Info */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-            <SearchIcon className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
-            <h1 className="text-2xl md:text-3xl lg:text-4xl">Search Results</h1>
-          </div>
-          <p className="text-base md:text-lg lg:text-xl text-gray-600">
-            {results.length} {results.length === 1 ? 'result' : 'results'} found for "{query}"
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 md:py-8">
+        <div className="mb-5 md:mb-8 search-item-enter">
+          <p className="text-xs sm:text-sm text-slate-500 mb-1">Showing results for</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-900 break-words">
+            &ldquo;{query}&rdquo;
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-slate-600">
+            {results.length} {results.length === 1 ? 'product' : 'products'} found
           </p>
         </div>
 
         {results.length === 0 ? (
-          <div className="text-center py-12 md:py-16">
-            <SearchIcon className="w-16 h-16 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 md:mb-4" />
-            <h2 className="text-xl md:text-2xl mb-3 md:mb-4">No products found</h2>
-            <p className="text-base md:text-lg lg:text-xl text-gray-600 mb-6 md:mb-8 px-4">
-              Try searching with different keywords
+          <div className="text-center py-12 md:py-16 bg-white rounded-xl border border-slate-200 search-item-enter">
+            <SearchIcon className="w-16 h-16 md:w-20 md:h-20 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl md:text-2xl font-semibold mb-2">No products found</h2>
+            <p className="text-base text-gray-600 mb-6 px-4">
+              Try different keywords like product name, category, or brand.
             </p>
-            <Link
-              to="/"
-              className="btn-primary px-6 md:px-8 py-3 md:py-4 text-base md:text-lg"
-            >
-              Back to Home
+            <Link to="/" className="btn-primary px-6 py-2.5">
+              Continue Shopping
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-            {results.map((product) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
+            {results.map((product, index) => (
               <div
                 key={product.id}
-                className="bg-white rounded-lg md:rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden group"
+                className="search-result-card"
+                style={{ animationDelay: `${Math.min(index * 50, 400)}ms` }}
               >
-                <Link to={`/product/${product.id}`} className="block">
-                  <div className="relative h-36 sm:h-48 md:h-64 overflow-hidden bg-gray-100">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                </Link>
-
-                <div className="p-2.5 sm:p-3 md:p-4">
-                  <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm sm:text-base md:text-xl mb-1.5 sm:mb-2 hover:text-teal-900 transition-colors line-clamp-1">
-                      {product.name}
-                    </h3>
-                  </Link>
-
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm md:text-base">
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Star className="w-4 h-4 md:w-5 md:h-5 fill-current" />
-                      <span className="text-gray-700">{product.rating}</span>
-                    </div>
-                    <span className="text-gray-400">|</span>
-                    <Link
-                      to={`/category/${product.category}`}
-                      className="text-xs md:text-sm text-teal-900 hover:underline capitalize truncate"
-                    >
-                      {product.category}
-                    </Link>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-base sm:text-lg md:text-2xl text-teal-900 font-bold">
-                      ₹{product.price}
-                    </span>
-                    <div className="flex gap-1.5 sm:gap-2">
-                      <Link
-                        to={`/product/${product.id}`}
-                        className="btn-outline-sm px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base"
-                      >
-                        Details
-                      </Link>
-                      <button
-                        onClick={() => handleAddToCart(product.id, product.name)}
-                        className="btn-primary-sm px-2 sm:px-2.5 md:px-4 py-1.5 md:py-2 text-[11px] sm:text-sm md:text-base"
-                      >
-                        <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
-                        <span className="hidden sm:inline">Add</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                />
               </div>
             ))}
           </div>

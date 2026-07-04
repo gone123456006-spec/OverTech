@@ -2,18 +2,38 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, Check, ChevronRight, Clock, Download,
-  Image, ImagePlus, LayoutGrid, Package, Pencil, RefreshCw,
+  Image, ImagePlus, LayoutGrid, LogOut, Package, Pencil, RefreshCw,
   Save, Search, ShoppingBag, ShoppingCart, Tag, Trash2, TrendingUp,
-  Truck, Upload, X, XCircle, DollarSign, Users, BarChart2
+  Truck, Upload, X, XCircle, DollarSign, Users, BarChart2, PlusSquare, FileText
 } from 'lucide-react';
-import { getProductById, getAllProducts } from '../data/products';
+import { getProductById, getAllProducts, isCustomProduct } from '../data/products';
 import {
-  cancelOrder, getOrders, updateOrderStatus,
+  getOrders,
   getBanners, saveBanners, getProductOverrides, saveProductOverride,
-  getPaymentMethodLabel
+  saveCustomProduct, deleteCustomProduct, newCustomProductId,
+  BANNER_SLOT_CONFIG,
+  DEFAULT_INVOICE_SETTINGS,
+  getInvoiceSettings,
+  saveInvoiceSettings,
+  saveOrderFromServer,
+  type AdminBanners,
+  type CustomProduct,
+  type InvoiceSettings,
+  type Order,
 } from '../utils/storage';
+import {
+  fetchAdminOrders,
+  updateAdminOrderStatusApi,
+  cancelAdminOrderApi,
+} from '../utils/ordersApi';
+import { AdminLogin } from './AdminLogin';
+import { clearAdminToken, isAdminLoggedIn } from '../utils/adminAuth';
+import { getCachedCategoryCards } from '../utils/categoryCards';
+import { STOREFRONT_UPDATED_EVENT, syncStorefrontCatalog } from '../utils/storefront';
+import { downloadOrderInvoice } from '../utils/invoice';
 import { toast } from 'sonner';
 import { SpecialOffersTab } from './SpecialOffersTab';
+import { CategoriesTab } from './CategoriesTab';
 
 /* ── Design tokens ─────────────────────────────────────────────── */
 // Apple palette: #F5F5F7 bg, #1D1D1F text, #6E6E73 secondary, #134e4a accent
@@ -35,19 +55,6 @@ function fmt(d?: string) {
 function isToday(d: string) {
   const dt = new Date(d), n = new Date();
   return dt.toDateString() === n.toDateString();
-}
-function downloadInvoice(order: Order) {
-  const lines = [`OVERTECH INVOICE`, `Order: ${order.id}`, `Date: ${fmt(order.date)}`, ``,
-    `Customer: ${order.address.name}  |  ${order.address.mobile}`,
-    `Address: ${order.address.house}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`, ``, `Items:`];
-  order.items.forEach(i => {
-    const p = getProductById(i.productId);
-    if (p) lines.push(`  ${p.name} × ${i.quantity}  —  ₹${p.price * i.quantity}`);
-  });
-  lines.push(``, `Payment: ${getPaymentMethodLabel(order.paymentMethod)}  |  ${order.paymentStatus}`, `Total: ₹${order.total}`);
-  const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
-  Object.assign(document.createElement('a'), { href: url, download: `invoice-${order.id}.txt` }).click();
-  URL.revokeObjectURL(url);
 }
 function exportCsv(orders: Order[]) {
   const rows = orders.map(o =>
@@ -129,6 +136,13 @@ function MetricCard({ label, value, sub, icon: Icon, accent = false }:
   );
 }
 
+function fmtPayment(order: Order) {
+  const method = order.paymentMethod === 'cod' ? 'COD' : order.paymentMethod === 'razorpay' ? 'Razorpay' : 'Online';
+  if (order.paymentStatus === 'paid') return `${method} — Payment Done`;
+  if (order.paymentStatus === 'refunded') return `${method} — Refunded`;
+  return `${method} — Pending`;
+}
+
 /** Order row card */
 function OrderCard({ order, highlight, actions }: { order: Order; highlight?: boolean; actions: React.ReactNode }) {
   const items = order.items.map(i => {
@@ -149,6 +163,11 @@ function OrderCard({ order, highlight, actions }: { order: Order; highlight?: bo
             {order.id}
           </span>
           <Pill status={order.status} />
+          {order.paymentStatus === 'paid' && (
+            <span className="text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full ring-1 ring-green-200">
+              Payment Done
+            </span>
+          )}
           {isToday(order.date) && (
             <span className="text-[10px] font-semibold text-teal-900 bg-teal-50 px-2 py-0.5 rounded-full ring-1 ring-teal-100">TODAY</span>
           )}
@@ -157,18 +176,18 @@ function OrderCard({ order, highlight, actions }: { order: Order; highlight?: bo
       </div>
 
       {/* Details grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 mb-4">
+      <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
         <Label text="Customer" sub={order.address.name} />
         <Label text="Phone" sub={order.address.mobile} />
         <Label text="Date" sub={fmt(order.date)} />
-        <Label text="Payment" sub={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)} />
-        <div className="col-span-2 md:col-span-4">
+        <Label text="Payment" sub={fmtPayment(order)} />
+        <div className="col-span-2">
           <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Items</p>
-          <p className="text-sm text-[#1D1D1F] truncate">{items || '—'}</p>
+          <p className="text-sm text-[#1D1D1F] line-clamp-2">{items || '—'}</p>
         </div>
-        <div className="col-span-2 md:col-span-4">
+        <div className="col-span-2">
           <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Delivery Address</p>
-          <p className="text-sm text-[#1D1D1F] truncate">{order.address.house}, {order.address.city}, {order.address.state} — {order.address.pincode}</p>
+          <p className="text-sm text-[#1D1D1F] line-clamp-2">{order.address.house}, {order.address.city}, {order.address.state} — {order.address.pincode}</p>
         </div>
       </div>
 
@@ -179,51 +198,85 @@ function OrderCard({ order, highlight, actions }: { order: Order; highlight?: bo
 }
 
 /* ── Banner field ──────────────────────────────────────────────── */
-function BannerField({ label, hint, value, onChange }:
-  { label: string; hint?: string; value?: string; onChange: (v: string) => void }) {
+function BannerField({ label, hint, value, onChange, defaultPreview }:
+  { label: string; hint?: string; value?: string; onChange: (v: string) => void; defaultPreview?: string }) {
   const [url, setUrl] = useState(value || '');
+
+  useEffect(() => {
+    setUrl(value || '');
+  }, [value]);
+
+  const displaySrc = value || defaultPreview;
+  const isCustom = Boolean(value);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { const v = ev.target?.result as string; setUrl(v); onChange(v); };
+    r.onload = ev => {
+      const v = ev.target?.result as string;
+      setUrl(v);
+      onChange(v);
+      toast.success('Banner updated on website');
+    };
     r.readAsDataURL(file);
   };
 
+  const applyUrl = () => {
+    onChange(url);
+    toast.success('Banner updated on website');
+  };
+
+  const clearBanner = () => {
+    setUrl('');
+    onChange('');
+    toast.success(isCustom ? 'Custom banner removed' : 'Cleared');
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-      <div className="flex items-start justify-between mb-4">
+    <div className="bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col h-full">
+      <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-sm font-semibold text-[#1D1D1F]">{label}</p>
           {hint && <p className="text-xs text-[#6E6E73] mt-0.5">{hint}</p>}
         </div>
-        {value && (
-          <button onClick={() => { setUrl(''); onChange(''); toast.success('Cleared'); }}
+        {isCustom && (
+          <button type="button" onClick={clearBanner}
             className="p-1.5 rounded-lg text-[#6E6E73] hover:text-red-500 hover:bg-red-50 transition-colors">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
-      {value && (
-        <div className="mb-4 rounded-xl overflow-hidden bg-[#F5F5F7] ring-1 ring-black/[0.06]">
-          <img src={value} alt="" className="w-full max-h-36 object-cover" />
-        </div>
-      )}
+      <div className="mb-4 rounded-xl overflow-hidden bg-[#F5F5F7] ring-1 ring-black/[0.06] min-h-[120px]">
+        {displaySrc ? (
+          <>
+            <img src={displaySrc} alt={`${label} preview`} className="w-full h-36 object-cover" />
+            <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[#6E6E73] bg-white/90 border-t border-black/[0.04]">
+              {isCustom ? 'Custom — live on website' : 'Default — live on website'}
+            </p>
+          </>
+        ) : (
+          <div className="h-36 flex flex-col items-center justify-center text-[#9E9EA7] gap-1">
+            <Image className="w-6 h-6" />
+            <p className="text-xs">No banner set yet</p>
+          </div>
+        )}
+      </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 mt-auto">
         <div className="flex gap-2">
           <input
             type="text" placeholder="Paste image URL…" value={url}
             onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && applyUrl()}
             className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl border-0 outline-none focus:ring-2 focus:ring-[#134e4a]/30 placeholder-[#9E9EA7] text-[#1D1D1F]"
           />
-          <PrimaryBtn onClick={() => { onChange(url); toast.success('Applied'); }}>
+          <PrimaryBtn onClick={applyUrl}>
             Apply
           </PrimaryBtn>
         </div>
         <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-[#D2D2D7] hover:border-[#134e4a] text-xs text-[#6E6E73] hover:text-[#134e4a] cursor-pointer transition-colors">
-          <Upload className="w-3.5 h-3.5" /> Upload from device
+          <Upload className="w-3.5 h-3.5" /> Upload new image
           <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
         </label>
       </div>
@@ -236,28 +289,35 @@ function BannerField({ label, hint, value, onChange }:
 /* ══════════════════════════════════════════════════════════════ */
 function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statFilter, setStatFilter] = useState<'all' | Order['status']>('all');
   const [newId, setNewId] = useState<string | null>(null);
   const prevCount = useRef(0);
 
-  const load = () => { const o = getOrders(); prevCount.current = o.length; setOrders(o); };
+  const load = async () => {
+    try {
+      const o = await fetchAdminOrders();
+      if (o.length > prevCount.current && prevCount.current > 0) {
+        toast.success('New order received');
+        setNewId(o[0]?.id || null);
+        setTimeout(() => setNewId(null), 4000);
+      }
+      prevCount.current = o.length;
+      setOrders(o);
+      o.forEach((order) => saveOrderFromServer(order));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load orders';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     load();
-    const onUp = () => {
-      const latest = getOrders();
-      if (latest.length > prevCount.current) {
-        toast.success('New order received');
-        setNewId(latest[0]?.id || null);
-        setTimeout(() => setNewId(null), 4000);
-      }
-      prevCount.current = latest.length;
-      setOrders(latest);
-    };
-    window.addEventListener('ordersUpdated', onUp);
-    window.addEventListener('storage', onUp);
-    return () => { window.removeEventListener('ordersUpdated', onUp); window.removeEventListener('storage', onUp); };
+    const interval = setInterval(load, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const filtered = useMemo(() => {
@@ -281,16 +341,20 @@ function OrdersTab() {
 
   return (
     <div className="space-y-6">
-      {/* Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {loading && orders.length === 0 && (
+        <div className="text-sm text-[#6E6E73]">Loading orders…</div>
+      )}
+      {/* Metrics — 4 in one row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <MetricCard label="Total Orders" value={orders.length} icon={Package} />
         <MetricCard label="Pending" value={orders.filter(o => o.status === 'pending').length} icon={Clock} accent />
         <MetricCard label="Delivered" value={orders.filter(o => o.status === 'delivered').length} icon={ShoppingBag} />
         <MetricCard label="Revenue" value={`₹${revenue.toLocaleString('en-IN')}`} icon={DollarSign} accent />
       </div>
 
-      {/* Search + Filter bar */}
-      <div className="bg-white rounded-2xl px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-wrap items-center gap-3">
+      {/* Search + Filter bar — sticky while scrolling orders */}
+      <div className="sticky top-[52px] md:top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-10 py-2 bg-[#F5F5F7]/95 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-[160px] bg-[#F5F5F7] rounded-xl px-3 py-2">
           <Search className="w-3.5 h-3.5 text-[#9E9EA7] flex-shrink-0" />
           <input
@@ -309,8 +373,9 @@ function OrdersTab() {
           ))}
         </div>
         <div className="flex gap-2 ml-auto">
-          <GhostBtn onClick={load}><RefreshCw className="w-3.5 h-3.5" /></GhostBtn>
+          <GhostBtn onClick={() => void load()}><RefreshCw className="w-3.5 h-3.5" /></GhostBtn>
           <GhostBtn onClick={() => exportCsv(filtered)}><Download className="w-3.5 h-3.5" /> Export</GhostBtn>
+        </div>
         </div>
       </div>
 
@@ -341,20 +406,32 @@ function OrdersTab() {
                 {list.length}
               </span>
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {list.map(order => (
                 <OrderCard key={order.id} order={order} highlight={newId === order.id} actions={
                   <>
                     {status === 'pending' && <>
-                      <PrimaryBtn onClick={() => { updateOrderStatus(order.id, 'accepted'); toast.success('Order accepted'); }}>
+                      <PrimaryBtn onClick={() => {
+                        updateAdminOrderStatusApi(order.id, 'accepted')
+                          .then((updated) => { saveOrderFromServer(updated); void load(); toast.success('Order accepted'); })
+                          .catch((e: Error) => toast.error(e.message));
+                      }}>
                         <Check className="w-3.5 h-3.5" /> Accept
                       </PrimaryBtn>
-                      <GhostBtn danger onClick={() => { cancelOrder(order.id, 'Rejected by admin'); toast.info('Rejected'); }}>
+                      <GhostBtn danger onClick={() => {
+                        cancelAdminOrderApi(order.id, 'Rejected by admin')
+                          .then((updated) => { saveOrderFromServer(updated); void load(); toast.info('Rejected'); })
+                          .catch((e: Error) => toast.error(e.message));
+                      }}>
                         <XCircle className="w-3.5 h-3.5" /> Reject
                       </GhostBtn>
                     </>}
                     {status === 'accepted' && <>
-                      <PrimaryBtn onClick={() => { updateOrderStatus(order.id, 'out_for_delivery'); toast.success('Out for delivery'); }}>
+                      <PrimaryBtn onClick={() => {
+                        updateAdminOrderStatusApi(order.id, 'out_for_delivery')
+                          .then((updated) => { saveOrderFromServer(updated); void load(); toast.success('Out for delivery'); })
+                          .catch((e: Error) => toast.error(e.message));
+                      }}>
                         <Truck className="w-3.5 h-3.5" /> Out for Delivery
                       </PrimaryBtn>
                       <GhostBtn onClick={() => toast.success(`Notified ${order.address.name}`)}>
@@ -362,13 +439,17 @@ function OrdersTab() {
                       </GhostBtn>
                     </>}
                     {status === 'out_for_delivery' && <>
-                      <PrimaryBtn onClick={() => { updateOrderStatus(order.id, 'delivered'); toast.success('Delivered!'); }}>
+                      <PrimaryBtn onClick={() => {
+                        updateAdminOrderStatusApi(order.id, 'delivered')
+                          .then((updated) => { saveOrderFromServer(updated); void load(); toast.success('Delivered!'); })
+                          .catch((e: Error) => toast.error(e.message));
+                      }}>
                         <Check className="w-3.5 h-3.5" /> Mark Delivered
                       </PrimaryBtn>
                       <p className="text-xs text-[#6E6E73] self-center">{order.deliveryAgentName}</p>
                     </>}
                     {(status === 'delivered' || status === 'cancelled') && <>
-                      <GhostBtn onClick={() => downloadInvoice(order)}>
+                      <GhostBtn onClick={() => downloadOrderInvoice(order)}>
                         <Download className="w-3.5 h-3.5" /> Invoice
                       </GhostBtn>
                       <Link to={`/order-confirmation/${order.id}`}
@@ -391,10 +472,23 @@ function OrdersTab() {
 /*  PRODUCTS TAB                                                  */
 /* ══════════════════════════════════════════════════════════════ */
 function ProductsTab() {
-  const all = getAllProducts();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const all = useMemo(() => getAllProducts(), [refreshKey]);
   const [editing, setEditing] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+
+  const categoryOptions = useMemo(() => {
+    const fromCards = getCachedCategoryCards()
+      .filter((c) => c.active)
+      .map((c) => ({ slug: c.slug, label: c.name }));
+    if (fromCards.length > 0) return fromCards;
+    return [
+      { slug: 'tech', label: 'Tech' },
+      { slug: 'jewellery', label: 'Jewellery' },
+      { slug: 'food', label: 'Food' },
+    ];
+  }, [refreshKey]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -402,9 +496,42 @@ function ProductsTab() {
   }, [all, search]);
 
   const start = (id: string) => {
+    if (editing[id]) {
+      cancel(id);
+      return;
+    }
     const p = all.find(x => x.id === id)!;
     const ov = getProductOverrides().find(o => o.id === id);
-    setEditing(prev => ({ ...prev, [id]: { name: p.name, price: p.price, stock: p.stock, image: p.image, description: p.description, banner: ov?.banner || '' } }));
+    setEditing({
+      [id]: {
+        name: p.name,
+        price: p.price,
+        stock: p.stock,
+        image: p.image,
+        description: p.description,
+        category: p.category,
+        rating: p.rating,
+        banner: ov?.banner || '',
+        isNew: isCustomProduct(id),
+      },
+    });
+  };
+
+  const startNew = () => {
+    const id = newCustomProductId();
+    setEditing({
+      [id]: {
+        name: 'New Product',
+        price: 999,
+        stock: 10,
+        image: '',
+        description: 'Product description',
+        category: categoryOptions[0]?.slug || 'tech',
+        rating: 4.5,
+        banner: '',
+        isNew: true,
+      },
+    });
   };
 
   const cancel = (id: string) => setEditing(prev => { const n = { ...prev }; delete n[id]; return n; });
@@ -412,8 +539,40 @@ function ProductsTab() {
   const save = (id: string) => {
     setSaving(id);
     const e = editing[id];
-    saveProductOverride({ id, name: e.name, price: Number(e.price), stock: Number(e.stock), image: e.image, description: e.description, banner: e.banner });
-    setTimeout(() => { setSaving(null); cancel(id); toast.success('Saved'); }, 350);
+    const payload = {
+      name: e.name,
+      price: Number(e.price),
+      stock: Number(e.stock),
+      image: e.image,
+      description: e.description,
+      category: e.category,
+      rating: Number(e.rating) || 4.5,
+    };
+
+    if (e.isNew || isCustomProduct(id)) {
+      const product: CustomProduct = { id, ...payload };
+      saveCustomProduct(product);
+    } else {
+      saveProductOverride({ id, ...payload, banner: e.banner });
+    }
+
+    setTimeout(() => {
+      setSaving(null);
+      cancel(id);
+      setRefreshKey((k) => k + 1);
+      toast.success('Product saved. Website updates within 1 minute.');
+    }, 350);
+  };
+
+  const remove = (id: string) => {
+    if (!isCustomProduct(id)) {
+      toast.error('Only admin-added products can be deleted');
+      return;
+    }
+    deleteCustomProduct(id);
+    cancel(id);
+    setRefreshKey((k) => k + 1);
+    toast.success('Product removed');
   };
 
   const fileToField = (id: string, field: 'image' | 'banner', e: React.ChangeEvent<HTMLInputElement>) => {
@@ -423,122 +582,183 @@ function ProductsTab() {
     r.readAsDataURL(file);
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Search */}
-      <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <Search className="w-3.5 h-3.5 text-[#9E9EA7]" />
-        <input type="text" placeholder="Search products…" value={search} onChange={e => setSearch(e.target.value)}
-          className="flex-1 text-sm text-[#1D1D1F] placeholder-[#9E9EA7] outline-none bg-transparent" />
-        <span className="text-xs text-[#9E9EA7]">{filtered.length} items</span>
+  const renderEditForm = (productId: string, e: Record<string, any>) => (
+    <div className="p-3 space-y-3 border-t border-[#F5F5F7] bg-[#FAFAFA] rounded-b-2xl">
+      {e.isNew && (
+        <p className="text-[10px] font-medium text-[#134e4a]">New product — fill details and save</p>
+      )}
+      <div className="space-y-3">
+        <div className="relative mx-auto w-16 h-16">
+          {e.image ? (
+            <img src={e.image} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#F5F5F7]" />
+          ) : (
+            <div className="w-16 h-16 rounded-lg bg-[#F5F5F7] flex items-center justify-center text-[10px] text-[#9E9EA7]">No image</div>
+          )}
+          <label className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+            <Upload className="w-3.5 h-3.5 text-white" />
+            <input type="file" accept="image/*" className="hidden" onChange={ev => fileToField(productId, 'image', ev)} />
+          </label>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Name</p>
+            <input value={e.name} onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], name: ev.target.value } }))}
+              className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Category</p>
+            <select
+              value={e.category}
+              onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], category: ev.target.value } }))}
+              className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]"
+            >
+              {categoryOptions.map((opt) => (
+                <option key={opt.slug} value={opt.slug}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Price (₹)</p>
+              <input type="number" value={e.price} onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], price: ev.target.value } }))}
+                className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+            </div>
+            <div>
+              <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Stock</p>
+              <input type="number" value={e.stock} onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], stock: ev.target.value } }))}
+                className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Rating</p>
+            <input type="number" step="0.1" min="1" max="5" value={e.rating}
+              onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], rating: ev.target.value } }))}
+              className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Image URL</p>
+            <input value={e.image} onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], image: ev.target.value } }))}
+              className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-0.5">Description</p>
+            <textarea value={e.description} rows={2} onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], description: ev.target.value } }))}
+              className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F] resize-none" />
+          </div>
+          {!e.isNew && (
+            <div className="pt-1">
+              <p className="text-[10px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1 flex items-center gap-1">
+                <ImagePlus className="w-3 h-3" /> Banner
+              </p>
+              {e.banner && <img src={e.banner} alt="" className="w-full h-12 object-cover rounded-lg mb-1" />}
+              <input value={e.banner} placeholder="Banner URL…" onChange={ev => setEditing(p => ({ ...p, [productId]: { ...p[productId], banner: ev.target.value } }))}
+                className="w-full px-2 py-1.5 text-xs bg-white rounded-lg outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Product list */}
-      <div className="space-y-3">
-        {filtered.map(product => {
-          const isEdit = !!editing[product.id];
-          const e = editing[product.id] || {};
-          const hasOverride = getProductOverrides().some(o => o.id === product.id && Object.keys(o).length > 1);
+      <div className="flex flex-col gap-1.5 pt-1">
+        <PrimaryBtn onClick={() => save(productId)} disabled={saving === productId}>
+          <Save className="w-3 h-3" /> {saving === productId ? 'Saving…' : 'Save'}
+        </PrimaryBtn>
+        <GhostBtn onClick={() => cancel(productId)}>
+          <X className="w-3 h-3" /> Cancel
+        </GhostBtn>
+        {(e.isNew || isCustomProduct(productId)) && (
+          <GhostBtn danger onClick={() => remove(productId)}>
+            <Trash2 className="w-3 h-3" /> Delete
+          </GhostBtn>
+        )}
+      </div>
+    </div>
+  );
 
-          return (
-            <div key={product.id} className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-              {!isEdit ? (
-                /* View row */
-                <div className="flex items-center gap-4 p-4">
-                  <div className="relative flex-shrink-0">
-                    <img src={product.image} alt={product.name} className="w-14 h-14 rounded-xl object-cover bg-[#F5F5F7]" />
-                    {hasOverride && <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#134e4a] ring-2 ring-white" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1D1D1F] truncate">{product.name}</p>
-                    <p className="text-xs text-[#6E6E73] capitalize mt-0.5">{product.category}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm font-semibold text-[#1D1D1F]">₹{product.price}</span>
-                      <span className={`text-xs ${product.stock <= 5 ? 'text-red-500' : 'text-[#6E6E73]'}`}>
-                        {product.stock} in stock{product.stock <= 5 ? ' ⚠' : ''}
-                      </span>
-                    </div>
-                  </div>
-                  <button onClick={() => start(product.id)}
-                    className="p-2 rounded-xl text-[#6E6E73] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors flex-shrink-0">
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                /* Edit form */
-                <div className="p-5 space-y-4">
-                  {/* Image + basic fields  */}
-                  <div className="flex gap-4">
-                    <div className="relative flex-shrink-0">
-                      <img src={e.image} alt="" className="w-20 h-20 rounded-xl object-cover bg-[#F5F5F7]" />
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
-                        <Upload className="w-4 h-4 text-white" />
-                        <input type="file" accept="image/*" className="hidden" onChange={ev => fileToField(product.id, 'image', ev)} />
-                      </label>
-                    </div>
-                    <div className="flex-1 grid grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Name</p>
-                        <input value={e.name} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], name: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Price (₹)</p>
-                        <input type="number" value={e.price} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], price: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Stock</p>
-                        <input type="number" value={e.stock} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], stock: ev.target.value } }))}
-                          className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
-                      </div>
-                    </div>
-                  </div>
+  const renderProductCard = (product: ReturnType<typeof getAllProducts>[number]) => {
+    const isEdit = !!editing[product.id];
+    const e = editing[product.id] || {};
+    const hasOverride = getProductOverrides().some(o => o.id === product.id && Object.keys(o).length > 1);
+    const isCustom = isCustomProduct(product.id);
 
-                  {/* Image URL */}
-                  <div>
-                    <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Image URL</p>
-                    <input value={e.image} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], image: ev.target.value } }))}
-                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Description</p>
-                    <textarea value={e.description} rows={2} onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], description: ev.target.value } }))}
-                      className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F] resize-none" />
-                  </div>
-
-                  {/* Product Banner */}
-                  <div className="border-t border-[#F5F5F7] pt-4">
-                    <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-2 flex items-center gap-1">
-                      <ImagePlus className="w-3 h-3" /> Product Banner
-                    </p>
-                    {e.banner && <img src={e.banner} alt="" className="w-full h-16 object-cover rounded-xl mb-2" />}
-                    <div className="flex gap-2">
-                      <input value={e.banner} placeholder="Banner URL…" onChange={ev => setEditing(p => ({ ...p, [product.id]: { ...p[product.id], banner: ev.target.value } }))}
-                        className="flex-1 px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 text-[#1D1D1F]" />
-                      <label className="px-3 py-2 rounded-xl bg-[#F5F5F7] text-xs text-[#6E6E73] hover:text-[#1D1D1F] cursor-pointer flex items-center gap-1 transition-colors">
-                        <Upload className="w-3 h-3" /> File
-                        <input type="file" accept="image/*" className="hidden" onChange={ev => fileToField(product.id, 'banner', ev)} />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <PrimaryBtn onClick={() => save(product.id)} disabled={saving === product.id}>
-                      <Save className="w-3.5 h-3.5" /> {saving === product.id ? 'Saving…' : 'Save'}
-                    </PrimaryBtn>
-                    <GhostBtn onClick={() => cancel(product.id)}>
-                      <X className="w-3.5 h-3.5" /> Cancel
-                    </GhostBtn>
-                  </div>
-                </div>
+    return (
+      <div key={product.id} className="flex flex-col min-w-0">
+        <div className={`bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col h-full ${isEdit ? 'ring-2 ring-[#134e4a]/30' : ''}`}>
+          <div className="flex flex-col flex-1 p-2.5">
+            <div className="relative mb-2">
+              <img src={product.image} alt={product.name} className="w-full aspect-square rounded-lg object-cover bg-[#F5F5F7]" />
+              {(hasOverride || isCustom) && (
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#134e4a] ring-2 ring-white" />
               )}
             </div>
-          );
-        })}
+            <p className="text-[11px] font-semibold text-[#1D1D1F] line-clamp-2 leading-tight">{product.name}</p>
+            <p className="text-[10px] text-[#6E6E73] capitalize mt-0.5 truncate">{product.category}</p>
+            <div className="flex items-center justify-between gap-1 mt-1.5">
+              <span className="text-[11px] font-semibold text-[#1D1D1F]">₹{product.price}</span>
+              <span className={`text-[10px] ${product.stock <= 5 ? 'text-red-500' : 'text-[#6E6E73]'}`}>
+                {product.stock}{product.stock <= 5 ? ' ⚠' : ''}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-[#F5F5F7]">
+              {isCustom && (
+                <button type="button" onClick={() => remove(product.id)}
+                  className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button type="button" onClick={() => start(product.id)}
+                className={`ml-auto p-1.5 rounded-lg transition-colors ${isEdit ? 'bg-[#134e4a] text-white' : 'text-[#6E6E73] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'}`}>
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+          {isEdit && renderEditForm(product.id, e)}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-[#F5F5F7] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-xs text-[#6E6E73]">
+          Add new product cards and choose which category they belong to. Category slug must match a category card (Admin → Categories).
+        </p>
+        <button
+          type="button"
+          onClick={startNew}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white ring-1 ring-black/[0.06] hover:bg-[#ebebed] shrink-0"
+        >
+          <PlusSquare className="w-3.5 h-3.5" /> Add New Product
+        </button>
+      </div>
+
+      {/* Search — sticky while scrolling products */}
+      <div className="sticky top-[52px] md:top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-10 py-2 bg-[#F5F5F7]/95 backdrop-blur-sm">
+        <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <Search className="w-3.5 h-3.5 text-[#9E9EA7]" />
+          <input type="text" placeholder="Search products…" value={search} onChange={e => setSearch(e.target.value)}
+            className="flex-1 text-sm text-[#1D1D1F] placeholder-[#9E9EA7] outline-none bg-transparent" />
+          <span className="text-xs text-[#9E9EA7]">{filtered.length} items</span>
+        </div>
+      </div>
+
+      {/* Product list — 5 per row; edit form opens below card */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {Object.entries(editing)
+          .filter(([id]) => !all.some((p) => p.id === id))
+          .map(([id, e]) => (
+            <div key={id} className="flex flex-col min-w-0">
+              <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden border-2 border-dashed border-[#134e4a]/30 ring-2 ring-[#134e4a]/20">
+                <div className="p-2.5 flex flex-col items-center justify-center min-h-[140px] text-center">
+                  <PlusSquare className="w-5 h-5 text-[#134e4a] mb-1" />
+                  <p className="text-[11px] font-semibold text-[#1D1D1F]">New Product</p>
+                </div>
+                {renderEditForm(id, e)}
+              </div>
+            </div>
+          ))}
+
+        {filtered.map(product => renderProductCard(product))}
       </div>
     </div>
   );
@@ -549,25 +769,169 @@ function ProductsTab() {
 /* ══════════════════════════════════════════════════════════════ */
 function BannersTab() {
   const [banners, setBanners] = useState<AdminBanners>(getBanners());
+
+  useEffect(() => {
+    syncStorefrontCatalog()
+      .then(() => setBanners(getBanners()))
+      .catch(() => setBanners(getBanners()));
+
+    const refresh = () => setBanners(getBanners());
+    window.addEventListener(STOREFRONT_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(STOREFRONT_UPDATED_EVENT, refresh);
+  }, []);
+
   const upd = (key: keyof AdminBanners, v: string) => {
     const next = { ...banners, [key]: v };
+    if (!v) delete next[key];
     setBanners(next);
     saveBanners(next);
   };
+
+  const stats = useMemo(() => {
+    let custom = 0;
+    let live = 0;
+    BANNER_SLOT_CONFIG.forEach((slot) => {
+      const customUrl = banners[slot.key];
+      const liveUrl = customUrl || slot.defaultPreview;
+      if (customUrl) custom += 1;
+      if (liveUrl) live += 1;
+    });
+    return { total: BANNER_SLOT_CONFIG.length, custom, live };
+  }, [banners]);
+
   return (
     <div className="space-y-4">
-      <div className="bg-[#F5F5F7] rounded-2xl p-4 flex gap-3">
-        <Image className="w-4 h-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
+      <div className="bg-[#F5F5F7] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex gap-3">
+          <Image className="w-4 h-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-[#6E6E73]">
+            All banner slots are listed below. Preview shows what is live on the website.
+            Upload or paste a URL → Apply to update. Trash removes your custom image (default shows again where available).
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-white ring-1 ring-black/[0.06] text-[#6E6E73]">
+            {stats.total} slots
+          </span>
+          <span className="text-xs px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 ring-1 ring-teal-100">
+            {stats.custom} custom
+          </span>
+          <span className="text-xs px-2.5 py-1 rounded-full bg-white ring-1 ring-black/[0.06] text-[#6E6E73]">
+            {stats.live} live
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {BANNER_SLOT_CONFIG.map((slot) => (
+          <BannerField
+            key={slot.key}
+            label={slot.label}
+            hint={slot.hint}
+            value={banners[slot.key]}
+            defaultPreview={slot.defaultPreview}
+            onChange={(v) => upd(slot.key, v)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  INVOICE SETTINGS TAB                                          */
+/* ══════════════════════════════════════════════════════════════ */
+function InvoiceSettingsTab() {
+  const [settings, setSettings] = useState<InvoiceSettings>(() => getInvoiceSettings());
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    syncStorefrontCatalog()
+      .then(() => setSettings(getInvoiceSettings()))
+      .catch(() => setSettings(getInvoiceSettings()));
+
+    const refresh = () => setSettings(getInvoiceSettings());
+    window.addEventListener(STOREFRONT_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(STOREFRONT_UPDATED_EVENT, refresh);
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      saveInvoiceSettings(settings);
+      toast.success('Invoice settings saved. New downloads use these details.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save invoice settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resetDefaults = () => {
+    setSettings(DEFAULT_INVOICE_SETTINGS);
+    toast.message('Defaults loaded. Click Save to apply.');
+  };
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <div className="bg-[#F5F5F7] rounded-2xl p-4">
         <p className="text-sm text-[#6E6E73]">
-          Banners update instantly across the storefront. Recommended size: <strong>1200 × 400 px</strong>.
+          Configure invoice header and terms &amp; conditions. These appear on A4 invoices downloaded from Orders.
         </p>
       </div>
-      <BannerField label="Homepage Banner" hint="Top of the homepage" value={banners.home} onChange={v => upd('home', v)} />
-      <BannerField label="Cart Banner" hint="Top of the cart page" value={banners.cart} onChange={v => upd('cart', v)} />
-      <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-widest pt-2">Categories</p>
-      <BannerField label="Clothes" value={banners.categoryClothes} onChange={v => upd('categoryClothes', v)} />
-      <BannerField label="Jewellery" value={banners.categoryJewellery} onChange={v => upd('categoryJewellery', v)} />
-      <BannerField label="Food" value={banners.categoryFood} onChange={v => upd('categoryFood', v)} />
+
+      <div className="bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] space-y-4">
+        <div>
+          <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Business Name</p>
+          <input
+            value={settings.businessName}
+            onChange={(e) => setSettings((s) => ({ ...s, businessName: e.target.value }))}
+            className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25"
+          />
+        </div>
+        <div>
+          <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Business Address</p>
+          <input
+            value={settings.businessAddress || ''}
+            onChange={(e) => setSettings((s) => ({ ...s, businessAddress: e.target.value }))}
+            className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25"
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Phone</p>
+            <input
+              value={settings.businessPhone || ''}
+              onChange={(e) => setSettings((s) => ({ ...s, businessPhone: e.target.value }))}
+              className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25"
+            />
+          </div>
+          <div>
+            <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Email</p>
+            <input
+              value={settings.businessEmail || ''}
+              onChange={(e) => setSettings((s) => ({ ...s, businessEmail: e.target.value }))}
+              className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25"
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-[11px] font-medium text-[#6E6E73] uppercase tracking-wide mb-1">Terms &amp; Conditions</p>
+          <p className="text-xs text-[#9E9EA7] mb-2">One line per point. Shown at the bottom of every invoice.</p>
+          <textarea
+            value={settings.termsAndConditions}
+            onChange={(e) => setSettings((s) => ({ ...s, termsAndConditions: e.target.value }))}
+            rows={8}
+            className="w-full px-3 py-2 text-sm bg-[#F5F5F7] rounded-xl outline-none focus:ring-2 focus:ring-[#134e4a]/25 resize-y"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 pt-2">
+          <PrimaryBtn onClick={handleSave} disabled={saving}>
+            <Save className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save Settings'}
+          </PrimaryBtn>
+          <GhostBtn onClick={resetDefaults}>Reset defaults</GhostBtn>
+        </div>
+      </div>
     </div>
   );
 }
@@ -719,92 +1083,144 @@ function AnalyticsTab() {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-/*  MAIN — Apple-style top nav + content area                     */
+/*  MAIN — left sidebar + content area                           */
 /* ══════════════════════════════════════════════════════════════ */
-type Tab = 'orders' | 'products' | 'banners' | 'offers' | 'analytics';
+type Tab = 'orders' | 'products' | 'banners' | 'categories' | 'offers' | 'analytics' | 'invoice';
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: 'orders', label: 'Orders', icon: Package },
   { id: 'products', label: 'Products', icon: ShoppingBag },
   { id: 'banners', label: 'Banners', icon: ImagePlus },
+  { id: 'categories', label: 'Categories', icon: LayoutGrid },
   { id: 'offers', label: 'Offers', icon: Tag },
+  { id: 'invoice', label: 'Invoice', icon: FileText },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
 export function AdminOrderDashboard() {
+  const [authenticated, setAuthenticated] = useState(isAdminLoggedIn());
   const [tab, setTab] = useState<Tab>('orders');
   const [pending, setPending] = useState(0);
 
   useEffect(() => {
-    const upd = () => setPending(getOrders().filter(o => o.status === 'pending').length);
+    if (!authenticated) return;
+    const upd = async () => {
+      try {
+        const orders = await fetchAdminOrders();
+        setPending(orders.filter((o) => o.status === 'pending').length);
+      } catch {
+        setPending(getOrders().filter((o) => o.status === 'pending').length);
+      }
+    };
     upd();
-    window.addEventListener('ordersUpdated', upd);
-    window.addEventListener('storage', upd);
-    return () => { window.removeEventListener('ordersUpdated', upd); window.removeEventListener('storage', upd); };
+    const interval = setInterval(upd, 30000);
+    return () => clearInterval(interval);
+  }, [authenticated]);
+
+  useEffect(() => {
+    import('../utils/storefront').then(({ syncStorefrontCatalog }) => {
+      syncStorefrontCatalog().catch(() => {});
+    });
   }, []);
 
+  if (!authenticated) {
+    return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
+  }
+
   return (
-    <div className={`min-h-screen bg-[#F5F5F7] ${SF}`}>
-      {/* ── Top navigation bar ── */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-black/[0.06]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-6 h-14">
-            {/* Brand */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 rounded-lg bg-[#1D1D1F] flex items-center justify-center">
-                <LayoutGrid className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-sm font-semibold text-[#1D1D1F] hidden sm:block">Admin</span>
+    <div className={`min-h-screen bg-[#F5F5F7] flex ${SF}`}>
+      {/* Left sidebar */}
+      <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-black/[0.06] bg-white fixed left-0 top-0 h-full z-30">
+        <div className="px-4 py-5 border-b border-black/[0.06]">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#1D1D1F] flex items-center justify-center">
+              <LayoutGrid className="w-4 h-4 text-white" />
             </div>
-
-            {/* Tab pills */}
-            <nav className="flex gap-0.5 flex-1">
-              {TABS.map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => setTab(id)}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150
-                    ${tab === id ? 'bg-[#F5F5F7] text-[#1D1D1F]' : 'text-[#6E6E73] hover:text-[#1D1D1F]'}`}>
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:block">{label}</span>
-                  {id === 'orders' && pending > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
-                      {pending > 9 ? '9+' : pending}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
-
-            {/* Store link */}
-            <Link to="/"
-              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-[#134e4a] font-medium hover:underline">
-              <ShoppingCart className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">Store</span>
-            </Link>
+            <span className="text-sm font-semibold text-[#1D1D1F]">Admin</span>
           </div>
         </div>
-      </header>
 
-      {/* ── Page content ── */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Page title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">
-            {TABS.find(t => t.id === tab)?.label}
-          </h1>
-          {tab === 'orders' && pending > 0 && (
-            <p className="text-sm text-[#6E6E73] mt-1 flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              {pending} order{pending > 1 ? 's' : ''} waiting for your response
-            </p>
-          )}
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={`relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left
+                ${tab === id ? 'bg-[#F5F5F7] text-[#1D1D1F]' : 'text-[#6E6E73] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'}`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{label}</span>
+              {id === 'orders' && pending > 0 && (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {pending > 9 ? '9+' : pending}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-3 border-t border-black/[0.06] space-y-1">
+          <button
+            type="button"
+            onClick={() => { clearAdminToken(); setAuthenticated(false); toast.info('Logged out'); }}
+            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-[#6E6E73] hover:bg-[#F5F5F7] transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
+          <Link
+            to="/"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-[#134e4a] hover:bg-teal-50 transition-colors"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            View Store
+          </Link>
         </div>
+      </aside>
 
-        {tab === 'orders' && <OrdersTab />}
-        {tab === 'products' && <ProductsTab />}
-        {tab === 'banners' && <BannersTab />}
-        {tab === 'offers' && <SpecialOffersTab />}
-        {tab === 'analytics' && <AnalyticsTab />}
-      </main>
+      {/* Mobile top tabs */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-black/[0.06] overflow-x-auto">
+        <div className="flex gap-1 p-2 min-w-max">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap
+                ${tab === id ? 'bg-[#F5F5F7] text-[#1D1D1F]' : 'text-[#6E6E73]'}`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 md:ml-56 min-w-0">
+        <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 md:py-8 pt-16 md:pt-8">
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">
+              {TABS.find(t => t.id === tab)?.label}
+            </h1>
+            {tab === 'orders' && pending > 0 && (
+              <p className="text-sm text-[#6E6E73] mt-1 flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                {pending} order{pending > 1 ? 's' : ''} waiting for your response
+              </p>
+            )}
+          </div>
+
+          {tab === 'orders' && <OrdersTab />}
+          {tab === 'products' && <ProductsTab />}
+          {tab === 'banners' && <BannersTab />}
+          {tab === 'categories' && <CategoriesTab />}
+          {tab === 'offers' && <SpecialOffersTab />}
+          {tab === 'invoice' && <InvoiceSettingsTab />}
+          {tab === 'analytics' && <AnalyticsTab />}
+        </main>
+      </div>
     </div>
   );
 }

@@ -209,7 +209,7 @@ export function SpecialOffersTab() {
       const data = await saveSpecialOffers(normalized);
       setOffers(data.offers);
       setLastSaved(data.updatedAt || new Date().toISOString());
-      toast.success('Special offers saved. Website updates within 2 minutes.');
+      toast.success('Special offers saved. Website updates within 1 minute.');
     } catch (error: any) {
       toast.error(error.message || 'Failed to save special offers');
     } finally {
@@ -228,7 +228,7 @@ export function SpecialOffersTab() {
         <div>
           <p className="text-sm text-[#1D1D1F] font-medium">Manage Special Offers</p>
           <p className="text-xs text-[#6E6E73] mt-1">
-            Changes appear on the homepage within about 2 minutes, or instantly after refresh.
+            Changes appear on the homepage within about 1 minute, or instantly after refresh.
           </p>
           {lastSaved && (
             <p className="text-[11px] text-[#9E9EA7] mt-1">
@@ -264,8 +264,8 @@ export function SpecialOffersTab() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-widest">Offer Cards</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <p className="col-span-full text-[11px] font-semibold text-[#6E6E73] uppercase tracking-widest">Offer Cards</p>
         {cards.map((offer) => (
           <OfferEditor
             key={offer.id}
@@ -278,8 +278,8 @@ export function SpecialOffersTab() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-widest">Offer Tags</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <p className="col-span-full text-[11px] font-semibold text-[#6E6E73] uppercase tracking-widest">Offer Tags</p>
         {tags.map((offer) => (
           <OfferEditor
             key={offer.id}

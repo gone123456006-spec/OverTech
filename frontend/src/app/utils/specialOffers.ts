@@ -1,4 +1,4 @@
-import { apiUrl } from './api';
+import { apiUrl, apiPut } from './api';
 
 export type SpecialOfferKind = 'card' | 'tag';
 
@@ -21,7 +21,7 @@ export interface SpecialOffersPayload {
 
 export const SPECIAL_OFFERS_CACHE_KEY = 'admin_special_offers_cache';
 export const SPECIAL_OFFERS_UPDATED_EVENT = 'specialOffersUpdated';
-export const SPECIAL_OFFERS_POLL_MS = 2 * 60 * 1000;
+export const SPECIAL_OFFERS_POLL_MS = 60 * 1000;
 
 const DEFAULT_WHATSAPP = '917991163225';
 
@@ -133,15 +133,11 @@ export async function fetchSpecialOffers(): Promise<SpecialOffersPayload> {
 }
 
 export async function saveSpecialOffers(offers: SpecialOffer[]): Promise<SpecialOffersPayload> {
-  const res = await fetch(apiUrl('/api/content/special-offers'), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ offers }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.message || 'Failed to save special offers');
-  }
+  const data = await apiPut<SpecialOffersPayload>(
+    '/api/content/special-offers',
+    { offers },
+    { auth: true }
+  );
   cacheSpecialOffers(data.offers, data.updatedAt);
   return data;
 }

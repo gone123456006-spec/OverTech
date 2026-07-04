@@ -34,7 +34,13 @@ export const generalRateLimiter = rateLimit({
         message: 'Too many requests from this IP. Please try again later.'
     },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    skip: (req) => {
+        if (process.env.NODE_ENV === 'test') return true;
+        // Storefront/catalog reads are polled by the site — do not count against the general cap
+        if (req.method === 'GET' && req.path.startsWith('/api/content')) return true;
+        return false;
+    },
 });
 
 /**

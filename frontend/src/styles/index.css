@@ -37,3 +37,85 @@
   0%, 100% { background-color: transparent; }
   50% { background-color: rgb(220 252 231 / 0.6); }
 }
+
+@keyframes searchDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes searchItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes searchSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes searchDotPulse {
+  0%, 80%, 100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.search-dropdown-enter {
+  animation: searchDropdownIn 0.22s ease-out forwards;
+}
+
+.search-item-enter {
+  animation: searchItemIn 0.28s ease-out forwards;
+  opacity: 0;
+}
+
+.search-icon-spin {
+  animation: searchSpin 0.7s linear infinite;
+}
+
+.search-dot {
+  animation: searchDotPulse 1s ease-in-out infinite;
+}
+
+.search-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.search-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.search-result-card {
+  animation: searchItemIn 0.35s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes searchTypeCursor {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.search-type-cursor {
+  animation: searchTypeCursor 1s step-end infinite;
+}

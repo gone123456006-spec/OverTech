@@ -4,6 +4,7 @@ import { BarChart3, Download, Package, Search, Bell, ChevronRight } from 'lucide
 import { getProductById } from '../data/products';
 import { cancelOrder, getOrders, updateOrderStatus, getPaymentMethodLabel } from '../utils/storage';
 import type { Order } from '../utils/storage';
+import { downloadOrderInvoice } from '../utils/invoice';
 import { toast } from 'sonner';
 
 const statusLabelMap: Record<Order['status'], string> = {
@@ -37,34 +38,7 @@ function csvEscape(value: string | number) {
 }
 
 function downloadInvoice(order: Order) {
-  const lines = [
-    'SHOPZONE INVOICE',
-    `Invoice Date: ${fmtDate(new Date().toISOString())}`,
-    `Order ID: ${order.id}`,
-    `Order Date: ${fmtDate(order.date)}`,
-    '',
-    `Customer: ${order.address.name}`,
-    `Phone: ${order.address.mobile}`,
-    `Address: ${order.address.house}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`,
-    '',
-    'Items:'
-  ];
-  order.items.forEach((item) => {
-    const product = getProductById(item.productId);
-    if (!product) return;
-    lines.push(`- ${product.name} | Qty: ${item.quantity} | ₹${product.price * item.quantity}`);
-  });
-  lines.push('');
-  lines.push(`Payment Mode: ${getPaymentMethodLabel(order.paymentMethod)}`);
-  lines.push(`Payment Status: ${order.paymentStatus}`);
-  lines.push(`Total Amount: ₹${order.total}`);
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `invoice-${order.id}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadOrderInvoice(order);
 }
 
 export function Orders() {

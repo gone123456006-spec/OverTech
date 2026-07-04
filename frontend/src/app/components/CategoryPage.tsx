@@ -1,18 +1,28 @@
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Star, ShoppingCart } from 'lucide-react';
-import { products } from '../data/products';
-import { addToCart } from '../utils/storage';
+import { getProductsByCategory } from '../data/products';
+import { addToCart, getCategoryPageBanner } from '../utils/storage';
 import { toast } from 'sonner';
-
-const categoryNames = {
-  tech: 'Tech',
-  jewellery: 'Jewellery',
-  food: 'Food'
-};
+import { ProductCard } from './ProductCard';
+import { getCategoryLabel } from '../utils/categoryCards';
+import { useContentSync } from '../hooks/useContentSync';
 
 export function CategoryPage() {
+  const contentTick = useContentSync();
   const { category } = useParams<{ category: string }>();
-  const categoryProducts = products.filter(p => p.category === category);
+  const categorySlug = category || '';
+  const categoryProducts = useMemo(
+    () => getProductsByCategory(categorySlug),
+    [contentTick, categorySlug]
+  );
+  const categoryName = useMemo(
+    () => getCategoryLabel(categorySlug),
+    [contentTick, categorySlug]
+  );
+  const categoryBanner = useMemo(
+    () => getCategoryPageBanner(categorySlug),
+    [contentTick, categorySlug]
+  );
 
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(productId, 1);
@@ -21,90 +31,42 @@ export function CategoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 md:py-8">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 mb-4 md:mb-6">
-          <Link to="/" className="hover:text-teal-900">Home</Link>
+        <div className="flex items-center gap-2 text-sm md:text-base text-slate-500 mb-4 md:mb-6">
+          <Link to="/" className="hover:text-teal-900 transition-colors">Home</Link>
           <span>/</span>
-          <span className="text-gray-900">{categoryNames[category as keyof typeof categoryNames]}</span>
+          <span className="text-slate-800">{categoryName}</span>
         </div>
 
-        {/* Page Header */}
         <div className="mb-4 sm:mb-6 md:mb-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
-            {categoryNames[category as keyof typeof categoryNames]}
+          {categoryBanner && (
+            <div className="mb-4 sm:mb-6 rounded-xl overflow-hidden shadow-md">
+              <img src={categoryBanner} alt={`${categoryName} banner`} className="w-full max-h-48 object-cover" />
+            </div>
+          )}
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-900 mb-1">
+            {categoryName}
           </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600">
+          <p className="text-sm sm:text-base text-slate-600">
             {categoryProducts.length} products available
           </p>
         </div>
 
-        {/* Product Grid - 3 cards per row on mobile, responsive */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
           {categoryProducts.map((product) => (
-            <div
+            <ProductCard
               key={product.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col min-w-0"
-            >
-              <Link to={`/product/${product.id}`} className="block flex-shrink-0 relative">
-                <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden bg-gray-50">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {product.stock < 10 && (
-                    <span className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-medium bg-amber-500 text-white rounded">
-                      Low stock
-                    </span>
-                  )}
-                </div>
-              </Link>
-
-              <div className="p-2.5 sm:p-3 md:p-4 flex-1 flex flex-col min-h-0 min-w-0">
-                <Link to={`/product/${product.id}`}>
-                  <h3 className="text-xs sm:text-sm md:text-lg mb-1 sm:mb-2 hover:text-teal-900 transition-colors line-clamp-2 font-medium text-gray-900">
-                    {product.name}
-                  </h3>
-                </Link>
-
-                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 flex-wrap">
-                  <div className="flex items-center gap-0.5 text-amber-500">
-                    <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
-                    <span className="text-[11px] sm:text-sm text-gray-700">{product.rating}</span>
-                  </div>
-                  <span className="text-gray-300">·</span>
-                  <span className="text-[10px] sm:text-xs text-gray-500">{product.stock} in stock</span>
-                </div>
-
-                <div className="mt-auto pt-1 flex items-center justify-between gap-1 sm:gap-2 min-w-0">
-                  <span className="text-sm sm:text-base text-slate-800 font-semibold truncate min-w-0">
-                    ₹{product.price}
-                  </span>
-                  <div className="flex gap-1 sm:gap-1.5 shrink-0">
-                    <Link
-                      to={`/product/${product.id}`}
-                      className="btn-outline-sm min-h-[32px] sm:min-h-[36px] px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-sm whitespace-nowrap"
-                    >
-                      Details
-                    </Link>
-                    <button
-                      onClick={() => handleAddToCart(product.id, product.name)}
-                      className="min-h-[32px] sm:min-h-[36px] w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 btn-icon"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+              product={product}
+              onAddToCart={handleAddToCart}
+              showCategory={false}
+            />
           ))}
         </div>
 
         {categoryProducts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-600">No products found in this category.</p>
+            <p className="text-lg text-slate-600">No products found in this category.</p>
           </div>
         )}
       </div>

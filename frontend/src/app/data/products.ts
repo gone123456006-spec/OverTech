@@ -1,11 +1,11 @@
-import { getProductOverrides } from '../utils/storage';
+import { getProductOverrides, getCustomProducts } from '../utils/storage';
 
 export interface Product {
   id: string;
   name: string;
   price: number;
   rating: number;
-  category: 'tech' | 'jewellery' | 'food';
+  category: string;
   image: string;
   description: string;
   stock: number;
@@ -279,31 +279,92 @@ export const products: Product[] = [
   }
 ];
 
+function applyOverride(product: Product, overrides: ReturnType<typeof getProductOverrides>): Product {
+  const ov = overrides.find((o) => o.id === product.id);
+  return ov ? { ...product, ...ov } : product;
+}
+
 export const getProductById = (id: string): Product | undefined => {
-  const base = products.find(p => p.id === id);
-  if (!base) return undefined;
   const overrides = getProductOverrides();
-  const ov = overrides.find(o => o.id === id);
-  return ov ? { ...base, ...ov } : base;
+  const base = products.find((p) => p.id === id);
+  if (base) return applyOverride(base, overrides);
+
+  const custom = getCustomProducts().find((p) => p.id === id);
+  return custom ? applyOverride(custom, overrides) : undefined;
 };
 
 export const getAllProducts = (): Product[] => {
   const overrides = getProductOverrides();
-  return products.map(p => {
-    const ov = overrides.find(o => o.id === p.id);
-    return ov ? { ...p, ...ov } : p;
-  });
+  return [
+    ...products.map((p) => applyOverride(p, overrides)),
+    ...getCustomProducts().map((p) => applyOverride(p, overrides)),
+  ];
 };
 
 export const getProductsByCategory = (category: string): Product[] => {
-  return products.filter(p => p.category === category);
+  return getAllProducts().filter((p) => p.category === category);
 };
 
+function nameMatchScore(name: string, term: string): number {
+  const lowerName = name.toLowerCase();
+  const lowerTerm = term.toLowerCase();
+  const words = lowerName.split(/[\s/-]+/).filter(Boolean);
+
+  if (lowerName === lowerTerm) return 100;
+  if (lowerName.startsWith(lowerTerm)) return 95;
+  if (words.some((word) => word === lowerTerm)) return 90;
+  if (words.some((word) => word.startsWith(lowerTerm))) return 85;
+  if (lowerName.includes(lowerTerm)) return 75;
+  return 0;
+}
+
+function categoryMatchScore(category: string, term: string): number {
+  const lowerCategory = category.toLowerCase();
+  const lowerTerm = term.toLowerCase();
+  if (lowerCategory === lowerTerm) return 60;
+  if (lowerCategory.startsWith(lowerTerm)) return 55;
+  if (lowerCategory.includes(lowerTerm)) return 50;
+  return 0;
+}
+
+function descriptionMatchScore(description: string, term: string): number {
+  const lowerTerm = term.toLowerCase();
+  const words = description
+    .toLowerCase()
+    .split(/[\s,./()-]+/)
+    .filter(Boolean);
+
+  if (words.some((word) => word === lowerTerm)) return 30;
+  return 0;
+}
+
+function scoreProduct(product: Product, terms: string[]): number {
+  let total = 0;
+
+  for (const term of terms) {
+    const nameScore = nameMatchScore(product.name, term);
+    const categoryScore = categoryMatchScore(product.category, term);
+    const descriptionScore = descriptionMatchScore(product.description, term);
+    const termScore = Math.max(nameScore, categoryScore, descriptionScore);
+
+    if (termScore === 0) return 0;
+    total += termScore;
+  }
+
+  return total;
+}
+
 export const searchProducts = (query: string): Product[] => {
-  const lowerQuery = query.toLowerCase();
-  return products.filter(p =>
-    p.name.toLowerCase().includes(lowerQuery) ||
-    p.description.toLowerCase().includes(lowerQuery) ||
-    p.category.toLowerCase().includes(lowerQuery)
-  );
+  const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return [];
+
+  return getAllProducts()
+    .map((product) => ({ product, score: scoreProduct(product, terms) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.product.name.localeCompare(b.product.name))
+    .map(({ product }) => product);
+};
+
+export const isCustomProduct = (id: string): boolean => {
+  return getCustomProducts().some((p) => p.id === id);
 };

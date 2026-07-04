@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, MapPin, CreditCard, Package, ChevronLeft, Loader2 } from 'lucide-react';
-import { getCart, getAddresses, saveAddress, createOrder, clearCart } from '../utils/storage';
+import { getCart, getAddresses, saveAddress, clearCart, saveOrderFromServer } from '../utils/storage';
+import { placeOrderOnServer } from '../utils/ordersApi';
 import { getProductById } from '../data/products';
 import type { Address, CartItem } from '../utils/storage';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ export function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => getCart());
   const orderPlacedRef = useRef(false);
+  const razorpayOrderIdRef = useRef<string | null>(null);
 
   const [newAddress, setNewAddress] = useState({
     name: '',
@@ -93,7 +95,7 @@ export function Checkout() {
     toast.success('Address added successfully');
   };
 
-  const handlePlaceOrder = (
+  const handlePlaceOrder = async (
     paymentStatusOverride?: 'pending' | 'paid',
     methodOverride?: 'cod' | 'razorpay'
   ) => {
@@ -118,22 +120,56 @@ export function Checkout() {
     setIsProcessing(true);
     orderPlacedRef.current = true;
 
-    const order = createOrder(cartItems, selectedAddress, method, total, {
-      paymentStatus: paymentStatusOverride || (method === 'razorpay' ? 'paid' : 'pending')
-    });
+    const draftOrderId = `ORD${Date.now().toString().slice(-8)}`;
 
-    clearCart();
-    window.dispatchEvent(new Event('cartUpdated'));
-    setIsProcessing(false);
-    navigate('/', {
-      replace: true,
-      state: {
-        orderConfirmed: {
-          orderId: order.id,
-          contactMobile: selectedAddress.mobile,
+    try {
+      const serverOrder = await placeOrderOnServer({
+        orderId: draftOrderId,
+        items: cartItems,
+        address: {
+          name: selectedAddress.name,
+          mobile: selectedAddress.mobile,
+          house: selectedAddress.house,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          pincode: selectedAddress.pincode,
         },
-      },
-    });
+        paymentMethod: method,
+        total,
+        ...(method === 'razorpay' && razorpayOrderIdRef.current
+          ? { razorpayOrderId: razorpayOrderIdRef.current }
+          : {}),
+      });
+
+      saveOrderFromServer({
+        ...serverOrder,
+        paymentStatus:
+          paymentStatusOverride ||
+          serverOrder.paymentStatus ||
+          (method === 'razorpay' ? 'paid' : 'pending'),
+        paymentMethod: method,
+        refundStatus: 'not_required',
+        deliveryAgentName: 'Rider Team',
+        deliveryAgentPhone: '+91 90000 00000',
+      });
+
+      clearCart();
+      window.dispatchEvent(new Event('cartUpdated'));
+      navigate('/', {
+        replace: true,
+        state: {
+          orderConfirmed: {
+            orderId: serverOrder.id,
+            contactMobile: selectedAddress.mobile,
+          },
+        },
+      });
+    } catch (err: unknown) {
+      orderPlacedRef.current = false;
+      const msg = err instanceof Error ? err.message : 'Could not place order. Please try again.';
+      toast.error(msg);
+      setIsProcessing(false);
+    }
   };
 
   /**
@@ -175,6 +211,8 @@ export function Checkout() {
           pincode: selectedAddress.pincode
         }
       });
+
+      razorpayOrderIdRef.current = orderData.orderId;
 
       // Step 2: Open Razorpay SDK popup
       const options = {
@@ -553,7 +591,7 @@ export function Checkout() {
 
                 {paymentMethod === 'cod' && (
                   <button
-                    onClick={() => handlePlaceOrder('pending')}
+                    onClick={() => void handlePlaceOrder('pending')}
                     disabled={!canPlaceOrder || isProcessing}
                     className="btn-primary w-full py-3 md:py-4 text-base md:text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >

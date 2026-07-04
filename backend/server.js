@@ -7,6 +7,8 @@ import connectDB, { closeDatabase, isDatabaseConnected } from './config/database
 import { validateEnv, logProductionConfig, isOriginAllowed } from './config/env.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalRateLimiter } from './middleware/rateLimiter.js';
 
@@ -68,6 +70,8 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/payment', paymentRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/content', contentRoutes);
 
 app.use(notFound);
